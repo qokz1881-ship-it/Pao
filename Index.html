@@ -2,8 +2,8 @@
 <html lang="th">
 <head>
     <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Colorful Monopoly Bank</title>
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+    <title>Colorful Monopoly App</title>
     
     <script src="https://cdn.tailwindcss.com"></script>
     <script src="https://cdn.jsdelivr.net/npm/sweetalert2@11"></script>
@@ -13,728 +13,676 @@
     <link href="https://fonts.googleapis.com/css2?family=Kanit:wght@300;400;500;600;700&display=swap" rel="stylesheet">
     
     <style>
+        :root { --nav-height: 70px; }
         body { 
             font-family: 'Kanit', sans-serif; 
-            /* สีพื้นหลังแบบ Colorful Gradient */
-            background: linear-gradient(-45deg, #ff9a9e, #fecfef, #a1c4fd, #c2e9fb);
-            background-size: 400% 400%;
-            animation: gradientBG 15s ease infinite;
+            background: linear-gradient(135deg, #fdfbfb 0%, #ebedee 100%);
             color: #1e293b; 
-            min-height: 100vh;
-            margin: 0;
+            margin: 0; padding: 0;
+            height: 100vh; overflow: hidden;
+            -webkit-tap-highlight-color: transparent;
         }
         
-        @keyframes gradientBG {
-            0% { background-position: 0% 50%; }
-            50% { background-position: 100% 50%; }
-            100% { background-position: 0% 50%; }
+        /* App Container for Mobile View */
+        .app-container {
+            width: 100%; max-width: 480px; height: 100vh;
+            margin: 0 auto; background: #f8fafc;
+            position: relative; overflow: hidden;
+            box-shadow: 0 0 40px rgba(0,0,0,0.1);
+            display: flex; flex-direction: column;
         }
 
         .hidden { display: none !important; }
         
-        /* Glassmorphism Panels */
-        .glass-card { 
-            background: rgba(255, 255, 255, 0.85); 
-            backdrop-filter: blur(16px); 
-            -webkit-backdrop-filter: blur(16px);
-            border: 1px solid rgba(255, 255, 255, 0.5); 
-            box-shadow: 0 10px 30px rgba(0,0,0,0.05); 
-            border-radius: 24px;
+        /* Colorful Cards */
+        .bank-card { background: linear-gradient(135deg, #667eea 0%, #764ba2 100%); color: white; }
+        .customer-card { background: linear-gradient(135deg, #ff9a9e 0%, #fecfef 99%, #fecfef 100%); color: #333; }
+        
+        /* Bottom Navigation */
+        .bottom-nav {
+            position: absolute; bottom: 0; width: 100%; height: var(--nav-height);
+            background: rgba(255, 255, 255, 0.95); backdrop-filter: blur(10px);
+            border-top: 1px solid #e2e8f0; display: flex; justify-content: space-around;
+            align-items: center; padding-bottom: env(safe-area-inset-bottom); z-index: 50;
         }
+        .nav-item {
+            display: flex; flex-direction: column; items-center; justify-content: center;
+            width: 25%; height: 100%; color: #94a3b8; font-size: 10px; font-weight: 600; transition: 0.2s;
+            text-align: center; cursor: pointer;
+        }
+        .nav-item.active { color: #6366f1; transform: translateY(-2px); }
+        .nav-icon { font-size: 24px; margin-bottom: 2px; }
+        .nav-item.active .nav-icon { transform: scale(1.1); filter: drop-shadow(0 2px 4px rgba(99,102,241,0.4)); }
 
-        .bank-card {
-            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
-            color: white;
-            box-shadow: 0 15px 25px rgba(102, 126, 234, 0.4);
+        /* Scrollable Content Area */
+        .content-area {
+            flex-grow: 1; overflow-y: auto; padding-bottom: calc(var(--nav-height) + 20px);
+            scrollbar-width: none; /* Firefox */
         }
+        .content-area::-webkit-scrollbar { display: none; } /* Chrome */
 
-        .customer-card {
-            background: linear-gradient(135deg, #f6d365 0%, #fda085 100%);
-            color: #fff;
-            box-shadow: 0 15px 25px rgba(253, 160, 133, 0.4);
-        }
-
-        /* App-like scrollbar */
-        ::-webkit-scrollbar { width: 4px; }
-        ::-webkit-scrollbar-track { background: transparent; }
-        ::-webkit-scrollbar-thumb { background: rgba(0,0,0,0.1); border-radius: 10px; }
-
-        .menu-icon-btn {
-            transition: all 0.2s ease;
-        }
-        .menu-icon-btn:active {
-            transform: scale(0.9);
-        }
-
-        #qr-reader video {
-            border-radius: 16px;
-            object-fit: cover;
-        }
+        /* Animations */
+        @keyframes fadeIn { from { opacity: 0; transform: translateY(10px); } to { opacity: 1; transform: translateY(0); } }
+        .tab-content { animation: fadeIn 0.3s ease forwards; }
     </style>
 </head>
-<body class="flex items-center justify-center p-2 sm:p-4">
+<body>
 
-    <div id="auth-screen" class="w-full max-w-md p-8 glass-card fade-in hidden">
-        <div class="text-center mb-8">
-            <div class="w-20 h-20 bg-gradient-to-tr from-pink-500 to-orange-400 rounded-3xl flex items-center justify-center text-4xl mx-auto mb-4 shadow-lg text-white">🏦</div>
-            <h1 class="text-3xl font-bold bg-clip-text text-transparent bg-gradient-to-r from-pink-500 to-violet-500">M-Banking</h1>
-            <p class="text-slate-500 mt-2">Mobile Banking สำหรับเกมเศรษฐี</p>
+<div class="app-container" id="app">
+
+    <div id="auth-screen" class="w-full h-full flex flex-col justify-center p-8 bg-gradient-to-br from-indigo-100 to-purple-100 hidden">
+        <div class="text-center mb-10">
+            <div class="w-24 h-24 bg-white rounded-3xl flex items-center justify-center text-5xl mx-auto mb-4 shadow-xl">🏦</div>
+            <h1 class="text-3xl font-bold text-indigo-800 tracking-wide">M-BANKING</h1>
+            <p class="text-indigo-500 mt-1 font-medium">เกมเศรษฐี สมาร์ทแบงก์</p>
         </div>
-        <div class="space-y-4">
-            <input id="email" type="email" placeholder="อีเมลของคุณ" class="w-full p-4 bg-white/50 border border-white rounded-2xl focus:ring-2 focus:ring-pink-400 outline-none transition">
-            <input id="password" type="password" placeholder="รหัสผ่าน" class="w-full p-4 bg-white/50 border border-white rounded-2xl focus:ring-2 focus:ring-pink-400 outline-none transition">
-            <input id="nickname" type="text" placeholder="ชื่อเล่น (ใส่เฉพาะตอนสมัคร)" class="w-full p-4 bg-white/50 border border-white rounded-2xl focus:ring-2 focus:ring-pink-400 outline-none transition">
+        <div class="space-y-4 bg-white/60 p-6 rounded-3xl backdrop-blur-md shadow-lg border border-white">
+            <input id="email" type="email" placeholder="อีเมลเข้าสู่ระบบ" class="w-full p-4 bg-white rounded-2xl focus:ring-2 focus:ring-indigo-400 outline-none text-slate-700 font-medium">
+            <input id="password" type="password" placeholder="รหัสผ่าน" class="w-full p-4 bg-white rounded-2xl focus:ring-2 focus:ring-indigo-400 outline-none text-slate-700 font-medium">
+            <input id="nickname" type="text" placeholder="ชื่อเล่น (ใส่ตอนสมัครใหม่เท่านั้น)" class="w-full p-4 bg-white rounded-2xl focus:ring-2 focus:ring-indigo-400 outline-none text-slate-700 font-medium">
             
-            <button id="btnLogin" class="w-full bg-gradient-to-r from-violet-500 to-purple-500 text-white p-4 rounded-2xl font-bold text-lg hover:opacity-90 transition shadow-lg mt-2">เข้าสู่ระบบ</button>
-            <button id="btnRegister" class="w-full bg-white text-purple-600 p-4 border-2 border-purple-100 rounded-2xl font-bold hover:bg-purple-50 transition">เปิดบัญชีใหม่</button>
+            <button id="btnLogin" class="w-full bg-indigo-600 text-white p-4 rounded-2xl font-bold text-lg hover:bg-indigo-700 shadow-lg shadow-indigo-200 mt-2 transition active:scale-95">เข้าสู่ระบบ</button>
+            <button id="btnRegister" class="w-full bg-transparent text-indigo-600 p-4 border-2 border-indigo-200 rounded-2xl font-bold hover:bg-indigo-50 transition active:scale-95">เปิดบัญชีใหม่</button>
         </div>
     </div>
 
-    <div id="lobby-screen" class="w-full max-w-md p-8 glass-card fade-in hidden">
-        <div class="flex justify-between items-center mb-8">
+    <div id="lobby-screen" class="w-full h-full overflow-y-auto p-6 bg-slate-50 hidden">
+        <div class="flex justify-between items-center mb-8 mt-4">
             <div>
-                <h2 class="text-2xl font-bold text-slate-800">ยินดีต้อนรับ</h2>
-                <p class="text-violet-600 font-semibold" id="lobbyName">คุณ: ...</p>
+                <h2 class="text-2xl font-bold text-slate-800">ล็อบบี้</h2>
+                <p class="text-indigo-600 font-bold" id="lobbyName">คุณ: ...</p>
             </div>
-            <button class="btnLogout p-2 bg-slate-100 text-slate-500 rounded-xl hover:bg-slate-200 text-sm font-medium">ออกระบบ</button>
+            <button class="btnLogout p-2 bg-slate-200 text-slate-600 rounded-xl font-bold text-xs hover:bg-slate-300">ออกระบบ</button>
         </div>
 
-        <div class="space-y-6">
-            <div class="p-6 bg-gradient-to-br from-indigo-50 to-blue-50 border border-blue-100 rounded-3xl text-center">
-                <div class="text-4xl mb-3">🏛️</div>
-                <h3 class="font-bold text-slate-800 text-lg">เปิดสาขาธนาคาร</h3>
-                <p class="text-sm text-slate-500 mb-4">สำหรับแอดมิน เพื่อควบคุมระบบเกม</p>
-                <button id="btnCreateRoom" class="w-full bg-blue-600 text-white p-4 rounded-2xl font-bold hover:bg-blue-700 transition shadow-lg shadow-blue-200">สร้างห้องใหม่</button>
-            </div>
+        <div class="bg-white p-6 rounded-3xl shadow-sm border border-slate-100 mb-6 text-center">
+            <div class="text-4xl mb-2">📱</div>
+            <h3 class="font-bold text-slate-800 mb-4">เข้าสู่ระบบธนาคาร (ผู้เล่น)</h3>
+            <input id="roomCode" type="number" placeholder="รหัสห้อง 4 หลัก" class="w-full p-4 bg-slate-50 border border-slate-200 rounded-2xl text-center text-2xl font-bold text-indigo-600 mb-3 outline-none focus:border-indigo-400">
+            <button id="btnJoinRoom" class="w-full bg-gradient-to-r from-pink-500 to-orange-400 text-white p-4 rounded-2xl font-bold shadow-lg shadow-orange-200 active:scale-95 transition">เข้าห้อง</button>
+        </div>
 
-            <div class="flex items-center">
-                <div class="flex-grow border-t border-slate-200"></div>
-                <span class="mx-4 text-slate-400 text-sm">หรือ</span>
-                <div class="flex-grow border-t border-slate-200"></div>
+        <div class="bg-indigo-50 p-6 rounded-3xl border border-indigo-100 text-center relative overflow-hidden">
+            <div class="absolute top-0 right-0 p-4 opacity-10 text-6xl">🏛️</div>
+            <h3 class="font-bold text-indigo-800 mb-1">สร้างสาขาธนาคาร (แอดมิน)</h3>
+            <p class="text-xs text-indigo-500 mb-4">ตั้งค่าเกมก่อนเริ่ม</p>
+            
+            <div class="space-y-3 mb-4 text-left">
+                <div>
+                    <label class="text-xs font-bold text-indigo-600 ml-1">จำนวนผู้เล่นทั้งหมด</label>
+                    <input id="createMaxPlayers" type="number" placeholder="เช่น 4" class="w-full p-3 bg-white border border-indigo-200 rounded-xl font-bold text-slate-700 outline-none">
+                </div>
+                <div>
+                    <label class="text-xs font-bold text-indigo-600 ml-1">เงินเริ่มต้นต่อคน (฿)</label>
+                    <input id="createStartBal" type="number" value="15000000" class="w-full p-3 bg-white border border-indigo-200 rounded-xl font-bold text-slate-700 outline-none">
+                </div>
             </div>
-
-            <div class="p-6 bg-gradient-to-br from-pink-50 to-orange-50 border border-orange-100 rounded-3xl text-center">
-                <div class="text-4xl mb-3">📱</div>
-                <h3 class="font-bold text-slate-800 text-lg">เข้าแอปในฐานะลูกค้า</h3>
-                <p class="text-sm text-slate-500 mb-4">ใส่รหัสห้อง 4 หลักเพื่อเชื่อมต่อธนาคาร</p>
-                <input id="roomCode" type="number" placeholder="รหัสสาขา (4 หลัก)" class="w-full p-4 bg-white border border-orange-200 rounded-2xl text-center text-2xl font-bold text-orange-600 mb-3 outline-none focus:border-orange-400">
-                <button id="btnJoinRoom" class="w-full bg-orange-500 text-white p-4 rounded-2xl font-bold hover:bg-orange-600 transition shadow-lg shadow-orange-200">เข้าสู่ระบบธนาคาร</button>
-            </div>
+            <button id="btnCreateRoom" class="w-full bg-indigo-600 text-white p-4 rounded-2xl font-bold shadow-lg shadow-indigo-200 active:scale-95 transition">สร้างห้องใหม่</button>
         </div>
     </div>
 
-    <div id="customer-screen" class="w-full max-w-md glass-card hidden overflow-hidden flex flex-col h-[90vh]">
+    <div id="customer-screen" class="w-full h-full hidden flex flex-col relative">
         
-        <div class="p-6 pb-4">
-            <div class="flex justify-between items-center mb-4">
-                <div class="flex items-center gap-3">
-                    <div class="w-12 h-12 rounded-full bg-orange-100 text-orange-500 flex items-center justify-center font-bold text-xl" id="custAvatar">A</div>
-                    <div>
-                        <h2 class="font-bold text-slate-800" id="custName">Name</h2>
-                        <p class="text-xs text-slate-500 flex items-center gap-1">
-                            บัญชีออมทรัพย์ • <span id="custAccNo" class="font-mono text-indigo-500 font-bold tracking-wider">000000</span>
-                        </p>
+        <div class="pt-10 pb-4 px-6 bg-white flex justify-between items-center border-b border-slate-100 z-10 shadow-sm">
+            <div class="flex items-center gap-3">
+                <div class="w-10 h-10 rounded-full bg-gradient-to-tr from-pink-400 to-orange-400 text-white flex items-center justify-center font-bold text-lg" id="custAvatar">A</div>
+                <div>
+                    <h2 class="font-bold text-slate-800 text-sm" id="custName">Name</h2>
+                    <p class="text-[10px] text-slate-500 font-mono">ID: <span id="custAccNo" class="font-bold text-indigo-600">000000</span> | ห้อง <span id="custRoomIdDisplay">--</span></p>
+                </div>
+            </div>
+            <button class="btnLeaveRoom w-8 h-8 bg-slate-100 text-slate-500 rounded-full flex items-center justify-center font-bold">✕</button>
+        </div>
+
+        <div class="content-area bg-slate-50 px-4 pt-4 relative">
+            
+            <div id="cust-tab-home" class="tab-content">
+                <div class="customer-card rounded-3xl p-6 mb-4 relative shadow-lg">
+                    <p class="text-slate-700 font-bold text-sm mb-1">ยอดเงินคงเหลือ</p>
+                    <div class="flex items-baseline gap-1">
+                        <span class="text-xl font-bold text-slate-700">฿</span>
+                        <span id="custBalance" class="text-4xl font-black tracking-tight text-slate-800">0</span>
                     </div>
                 </div>
-                <button class="btnLeaveRoom w-10 h-10 bg-slate-100 text-slate-500 rounded-full flex items-center justify-center hover:bg-red-100 hover:text-red-500 transition">✕</button>
+
+                <div id="custEventBanner" class="bg-gradient-to-r from-indigo-500 to-purple-500 rounded-2xl p-4 text-white shadow-lg mb-4 hidden">
+                    <div class="flex justify-between items-center">
+                        <div>
+                            <h4 class="font-bold text-sm">🔥 กิจกรรมด่วน!</h4>
+                            <p id="custEventTitle" class="text-xs text-indigo-100">กำลังโหลด...</p>
+                        </div>
+                        <div class="text-right">
+                            <p id="custEventTimer" class="font-mono font-black text-2xl text-yellow-300 tracking-wider">00:00</p>
+                        </div>
+                    </div>
+                </div>
+
+                <h3 class="font-bold text-slate-800 mb-2 px-2 text-sm">ทางลัด</h3>
+                <div class="grid grid-cols-2 gap-3">
+                    <button class="bg-white p-4 rounded-2xl border border-slate-100 shadow-sm flex items-center gap-3 active:scale-95 transition" onclick="switchCustTab('transfer')">
+                        <div class="text-3xl">💸</div>
+                        <div class="text-left"><p class="font-bold text-sm text-slate-700">โอนเงิน</p><p class="text-[10px] text-slate-400">ให้เพื่อนในห้อง</p></div>
+                    </button>
+                    <button class="bg-white p-4 rounded-2xl border border-slate-100 shadow-sm flex items-center gap-3 active:scale-95 transition" id="btnShowMyQR">
+                        <div class="text-3xl">🔳</div>
+                        <div class="text-left"><p class="font-bold text-sm text-slate-700">รับเงิน</p><p class="text-[10px] text-slate-400">โชว์ QR Code</p></div>
+                    </button>
+                </div>
             </div>
 
-            <div class="customer-card rounded-3xl p-6 relative overflow-hidden">
-                <div class="absolute top-0 right-0 p-4 opacity-20 text-6xl">💸</div>
-                <p class="text-white/80 text-sm font-medium mb-1">ยอดเงินคงเหลือ (THB)</p>
-                <div class="flex items-baseline gap-2">
-                    <span class="text-2xl font-medium">฿</span>
-                    <span id="custBalance" class="text-5xl font-bold tracking-tight">0</span>
+            <div id="cust-tab-transfer" class="tab-content hidden">
+                <h2 class="font-bold text-lg text-slate-800 mb-4 px-2">โอนเงิน / สแกนจ่าย</h2>
+                
+                <div class="bg-white p-5 rounded-3xl shadow-sm border border-slate-100 mb-4">
+                    <button id="btnOpenScanner" class="w-full bg-emerald-50 text-emerald-600 p-4 rounded-2xl font-bold mb-4 border border-emerald-100 flex justify-center items-center gap-2 active:bg-emerald-100">
+                        <span class="text-2xl">📷</span> สแกน QR โค้ด
+                    </button>
+                    
+                    <div class="flex items-center mb-4">
+                        <div class="flex-grow border-t border-slate-100"></div>
+                        <span class="mx-4 text-slate-400 text-xs font-bold">หรือกรอกเลขบัญชี</span>
+                        <div class="flex-grow border-t border-slate-100"></div>
+                    </div>
+
+                    <div class="space-y-3">
+                        <input id="t-id" type="number" placeholder="เลขบัญชี 6 หลัก" class="w-full p-4 bg-slate-50 border border-slate-200 rounded-xl text-center text-lg font-mono font-bold text-indigo-600 outline-none focus:border-indigo-400">
+                        <input id="t-amt" type="number" placeholder="จำนวนเงิน ฿" class="w-full p-4 bg-slate-50 border border-slate-200 rounded-xl text-center text-xl font-bold text-slate-800 outline-none focus:border-indigo-400">
+                        <button id="btnConfirmTransfer" class="w-full bg-indigo-600 text-white p-4 rounded-xl font-bold shadow-lg shadow-indigo-200 active:scale-95">ตรวจสอบข้อมูล</button>
+                    </div>
                 </div>
-                <p class="text-white/80 text-xs mt-4">สาขา: <span id="custRoomIdDisplay">----</span></p>
             </div>
+
+            <div id="cust-tab-props" class="tab-content hidden h-full flex flex-col">
+                <h2 class="font-bold text-lg text-slate-800 mb-2 px-2">โฉนดที่ดินของฉัน</h2>
+                
+                <div class="bg-white p-4 rounded-3xl shadow-sm border border-slate-100 mb-4 flex gap-2">
+                    <input id="propNumberInput" type="number" placeholder="กรอกเลขโฉนด" class="w-full p-3 bg-slate-50 border border-slate-200 rounded-xl font-bold text-indigo-600 outline-none text-center">
+                    <button id="btnBuyProp" class="bg-pink-500 text-white px-6 rounded-xl font-bold shadow-md hover:bg-pink-600 whitespace-nowrap">บันทึก</button>
+                </div>
+
+                <div class="flex justify-between items-center px-2 mb-2">
+                    <p class="text-xs font-bold text-slate-500">รายการที่ครอบครอง</p>
+                    <span id="custPropCountBadge" class="bg-slate-200 text-slate-600 px-2 py-0.5 rounded-full text-[10px] font-bold">0</span>
+                </div>
+                
+                <div class="bg-white rounded-3xl shadow-sm border border-slate-100 flex-grow p-4 overflow-y-auto">
+                    <div id="custPropList" class="flex flex-wrap gap-2">
+                        </div>
+                </div>
+            </div>
+
+            <div id="cust-tab-history" class="tab-content hidden">
+                <h2 class="font-bold text-lg text-slate-800 mb-4 px-2">ประวัติการทำรายการ</h2>
+                <div class="bg-white rounded-3xl shadow-sm border border-slate-100 overflow-hidden">
+                    <ul id="custHistoryFeed" class="divide-y divide-slate-50 p-2"></ul>
+                </div>
+            </div>
+
         </div>
 
-        <div id="custEventBanner" class="mx-6 mb-4 bg-gradient-to-r from-violet-500 to-fuchsia-500 rounded-2xl p-4 text-white shadow-lg hidden">
-            <div class="flex justify-between items-center">
-                <div>
-                    <h4 class="font-bold text-sm">🔥 กิจกรรมด่วน!</h4>
-                    <p id="custEventTitle" class="text-xs text-white/80">กำลังโหลด...</p>
-                </div>
-                <div class="text-right">
-                    <p class="text-[10px] text-white/80 uppercase tracking-wider">เวลาที่เหลือ</p>
-                    <p id="custEventTimer" class="font-mono font-bold text-xl text-yellow-300">00:00</p>
-                </div>
+        <div class="bottom-nav">
+            <div class="nav-item active" data-tab="cust-tab-home" onclick="switchCustTab('home')">
+                <span class="nav-icon">🏠</span><span>หน้าหลัก</span>
             </div>
-        </div>
-
-        <div class="flex-grow overflow-y-auto px-6 pb-6 space-y-6">
-            
-            <div>
-                <h3 class="text-sm font-bold text-slate-800 mb-3">ทำรายการ</h3>
-                <div class="grid grid-cols-4 gap-4">
-                    <button id="btnMenuTransfer" class="menu-icon-btn flex flex-col items-center gap-2">
-                        <div class="w-14 h-14 bg-blue-50 text-blue-500 rounded-2xl flex items-center justify-center text-2xl shadow-sm border border-blue-100">เลขบ/ช</div>
-                        <span class="text-xs font-medium text-slate-600">โอนเงิน</span>
-                    </button>
-                    <button id="btnMenuScan" class="menu-icon-btn flex flex-col items-center gap-2">
-                        <div class="w-14 h-14 bg-emerald-50 text-emerald-500 rounded-2xl flex items-center justify-center text-2xl shadow-sm border border-emerald-100">📷</div>
-                        <span class="text-xs font-medium text-slate-600">สแกนจ่าย</span>
-                    </button>
-                    <button id="btnMenuMyQR" class="menu-icon-btn flex flex-col items-center gap-2">
-                        <div class="w-14 h-14 bg-purple-50 text-purple-500 rounded-2xl flex items-center justify-center text-2xl shadow-sm border border-purple-100">🔳</div>
-                        <span class="text-xs font-medium text-slate-600">รับเงิน</span>
-                    </button>
-                    <button id="btnMenuBuy" class="menu-icon-btn flex flex-col items-center gap-2">
-                        <div class="w-14 h-14 bg-pink-50 text-pink-500 rounded-2xl flex items-center justify-center text-2xl shadow-sm border border-pink-100">🏠</div>
-                        <span class="text-xs font-medium text-slate-600">ซื้อที่ดิน</span>
-                    </button>
-                </div>
+            <div class="nav-item" data-tab="cust-tab-transfer" onclick="switchCustTab('transfer')">
+                <span class="nav-icon">💸</span><span>โอนเงิน</span>
             </div>
-
-            <div class="bg-white p-4 rounded-3xl border border-slate-100 shadow-sm">
-                <div class="flex justify-between items-center mb-3">
-                    <h3 class="text-sm font-bold text-slate-800">โฉนดของคุณ</h3>
-                    <span id="custPropCount" class="text-xs bg-orange-100 text-orange-600 px-2 py-1 rounded-full font-bold">0</span>
-                </div>
-                <div id="custPropList" class="flex flex-wrap gap-2 min-h-[40px]">
-                    <p class="text-xs text-slate-400 w-full text-center py-2">ยังไม่มีโฉนด</p>
-                </div>
+            <div class="nav-item" data-tab="cust-tab-props" onclick="switchCustTab('props')">
+                <span class="nav-icon">📄</span><span>โฉนด</span>
             </div>
-
-            <div>
-                <h3 class="text-sm font-bold text-slate-800 mb-3">ประวัติความเคลื่อนไหว</h3>
-                <ul id="custHistoryFeed" class="space-y-3"></ul>
+            <div class="nav-item" data-tab="cust-tab-history" onclick="switchCustTab('history')">
+                <span class="nav-icon">🕒</span><span>ประวัติ</span>
             </div>
         </div>
     </div>
 
-    <div id="bank-screen" class="w-full max-w-md glass-card hidden overflow-hidden flex flex-col h-[95vh]">
-        <div class="bank-card p-6 rounded-b-3xl">
-            <div class="flex justify-between items-start mb-6">
+    <div id="bank-screen" class="w-full h-full hidden flex flex-col relative">
+        
+        <div class="bank-card pt-10 pb-6 px-6 z-10 shadow-lg relative">
+            <button class="btnLeaveRoom absolute top-10 right-6 text-white/80 bg-white/20 px-3 py-1 rounded-full text-xs font-bold">ปิดสาขา</button>
+            <h1 class="text-2xl font-black tracking-wide mb-1">🏛️ ธนาคารกลาง</h1>
+            <div class="flex justify-between items-end mt-4">
                 <div>
-                    <h1 class="text-2xl font-bold flex items-center gap-2">🏛️ ธนาคารกลาง</h1>
-                    <p class="text-white/80 text-sm">ผู้จัดการ: <span id="bankAdminName"></span></p>
-                </div>
-                <button class="btnLeaveRoom text-white/80 hover:text-white bg-white/20 px-3 py-1 rounded-full text-sm backdrop-blur-md">ปิดสาขา</button>
-            </div>
-            
-            <div class="bg-white/10 rounded-2xl p-4 backdrop-blur-md border border-white/20 flex justify-between items-center">
-                <div>
-                    <p class="text-xs text-white/70 uppercase tracking-widest">รหัสสาขา (ให้ลูกค้าเข้า)</p>
-                    <p id="bankRoomId" class="text-3xl font-bold tracking-widest mt-1 text-yellow-300"></p>
+                    <p class="text-[10px] text-white/70 uppercase tracking-widest">รหัสห้อง (สำหรับเข้าเล่น)</p>
+                    <p id="bankRoomId" class="text-4xl font-black text-yellow-300 tracking-widest mt-1"></p>
                 </div>
                 <div class="text-right">
-                    <p class="text-xs text-white/70 uppercase">ลูกค้าทั้งหมด</p>
-                    <p id="bankUserCount" class="text-2xl font-bold mt-1">0</p>
+                    <p class="text-[10px] text-white/70">ผู้เล่น</p>
+                    <p id="bankUserCount" class="text-2xl font-bold">0</p>
                 </div>
             </div>
         </div>
 
-        <div class="flex-grow overflow-y-auto p-6 space-y-6">
+        <div class="content-area bg-slate-50 p-4 relative">
             
-            <div class="bg-white p-5 rounded-3xl border border-slate-100 shadow-sm">
-                <h3 class="font-bold text-slate-800 mb-3 flex items-center gap-2">⏱️ จัดการกิจกรรม</h3>
-                
-                <div id="bankEventActive" class="hidden bg-indigo-50 border border-indigo-100 p-4 rounded-2xl mb-3 text-center">
-                    <p class="text-sm text-indigo-800 font-bold mb-1" id="bankActiveEventTitle">กำลังประมูล...</p>
-                    <p class="text-2xl font-mono font-bold text-indigo-500" id="bankActiveEventTimer">00:00</p>
-                    <button id="btnBankCancelEvent" class="w-full mt-3 bg-white text-red-500 border border-red-200 p-2 rounded-xl text-xs font-bold hover:bg-red-50">ยกเลิกกิจกรรม</button>
-                </div>
-
-                <div id="bankEventSetup" class="space-y-3">
-                    <input id="evTitle" type="text" placeholder="ชื่อกิจกรรม (เช่น ประมูลที่ดิน)" class="w-full p-3 bg-slate-50 border border-slate-200 rounded-xl text-sm focus:border-indigo-400 outline-none">
-                    <div class="flex gap-2">
-                        <input id="evMins" type="number" placeholder="นาที" class="w-1/3 p-3 bg-slate-50 border border-slate-200 rounded-xl text-sm focus:border-indigo-400 outline-none">
-                        <button id="btnBankStartEvent" class="w-2/3 bg-indigo-500 text-white font-bold rounded-xl shadow-md hover:bg-indigo-600 transition">เริ่มจับเวลา</button>
-                    </div>
-                </div>
-            </div>
-
-            <div>
-                <div class="flex justify-between items-center mb-3">
-                    <h3 class="font-bold text-slate-800">รายชื่อลูกค้า & ทำรายการ</h3>
-                </div>
+            <div id="bank-tab-money" class="tab-content">
                 <div class="grid grid-cols-2 gap-3 mb-4">
-                    <button id="btnBankGive" class="bg-emerald-50 text-emerald-600 border border-emerald-200 p-3 rounded-2xl font-bold shadow-sm hover:bg-emerald-100 flex flex-col items-center">
-                        <span class="text-2xl mb-1">💸</span> แจกเงิน
+                    <button id="btnBankGive" class="bg-emerald-50 text-emerald-600 border border-emerald-200 p-4 rounded-2xl font-bold flex flex-col items-center justify-center active:bg-emerald-100">
+                        <span class="text-3xl mb-1">🏦⬆️</span> แจกเงิน
                     </button>
-                    <button id="btnBankTake" class="bg-red-50 text-red-600 border border-red-200 p-3 rounded-2xl font-bold shadow-sm hover:bg-red-100 flex flex-col items-center">
-                        <span class="text-2xl mb-1">🏦</span> หักภาษี
+                    <button id="btnBankTake" class="bg-red-50 text-red-600 border border-red-200 p-4 rounded-2xl font-bold flex flex-col items-center justify-center active:bg-red-100">
+                        <span class="text-3xl mb-1">🏛️⬇️</span> หักเงิน
                     </button>
                 </div>
+
+                <h3 class="font-bold text-slate-800 text-sm mb-2 px-1">รายชื่อผู้เล่น</h3>
+                <div class="bg-white rounded-3xl shadow-sm border border-slate-100 overflow-hidden">
+                    <ul id="bankPlayerList" class="divide-y divide-slate-50 p-2"></ul>
+                </div>
+            </div>
+
+            <div id="bank-tab-events" class="tab-content hidden">
+                <h2 class="font-bold text-lg text-slate-800 mb-4 px-2">จัดการกิจกรรม / เวลา</h2>
                 
-                <div class="bg-white rounded-3xl border border-slate-100 shadow-sm overflow-hidden">
-                    <ul id="bankPlayerList" class="divide-y divide-slate-100 max-h-[300px] overflow-y-auto p-2">
-                        </ul>
+                <div class="bg-white p-5 rounded-3xl shadow-sm border border-slate-100">
+                    <div id="bankEventActive" class="hidden text-center mb-6 pb-6 border-b border-slate-100">
+                        <p class="text-xs text-indigo-500 font-bold mb-1">กิจกรรมที่กำลังทำงาน</p>
+                        <h4 id="bankActiveTitle" class="text-lg font-bold text-slate-800 mb-2">--</h4>
+                        <p id="bankActiveTimer" class="text-4xl font-mono font-black text-indigo-600 mb-4">00:00</p>
+                        <button id="btnBankCancelEvent" class="bg-red-50 text-red-500 px-6 py-2 rounded-xl font-bold text-sm border border-red-100">ยกเลิกกิจกรรม</button>
+                    </div>
+
+                    <div id="bankEventSetup">
+                        <label class="text-xs font-bold text-slate-500 ml-1">ชื่อกิจกรรม</label>
+                        <input id="evTitle" type="text" placeholder="เช่น แจกโบนัส, ประมูล..." class="w-full p-3 bg-slate-50 border border-slate-200 rounded-xl mb-3 outline-none focus:border-indigo-400 text-sm font-bold">
+                        <label class="text-xs font-bold text-slate-500 ml-1">เวลา (นาที)</label>
+                        <input id="evMins" type="number" placeholder="เช่น 3" class="w-full p-3 bg-slate-50 border border-slate-200 rounded-xl mb-4 outline-none focus:border-indigo-400 text-sm font-bold">
+                        <button id="btnBankStartEvent" class="w-full bg-indigo-600 text-white font-bold p-3 rounded-xl shadow-lg active:scale-95">เริ่มจับเวลา</button>
+                    </div>
                 </div>
             </div>
-        </div>
-    </div>
 
-    <div id="modal-myqr" class="fixed inset-0 bg-slate-900/60 backdrop-blur-sm z-50 hidden flex items-center justify-center p-4">
-        <div class="bg-white w-full max-w-sm rounded-3xl p-8 text-center relative shadow-2xl">
-            <button class="close-modal absolute top-4 right-4 text-slate-400 hover:text-slate-800 text-2xl">✕</button>
-            <h3 class="text-xl font-bold text-slate-800 mb-2">QR Code รับเงิน</h3>
-            <p class="text-sm text-slate-500 mb-6">ให้เพื่อนสแกนเพื่อโอนเงินมาที่คุณ</p>
-            
-            <div class="bg-white p-4 rounded-2xl shadow-inner border border-slate-100 inline-block mb-4">
-                <div id="qrcode-container" class="mx-auto"></div>
+            <div id="bank-tab-props" class="tab-content hidden">
+                <h2 class="font-bold text-lg text-slate-800 mb-4 px-2">ตรวจสอบโฉนด</h2>
+                <p class="text-xs text-slate-500 mb-4 px-2">รายชื่อผู้เล่นและโฉนดหมายเลขที่ครอบครอง</p>
+                <div id="bankPropViewList" class="space-y-3">
+                    </div>
             </div>
-            
-            <div class="bg-indigo-50 border border-indigo-100 rounded-xl p-3">
-                <p class="text-xs text-indigo-400 font-medium">เลขบัญชีของคุณ</p>
-                <p id="qrAccNo" class="text-2xl font-mono font-bold text-indigo-600 tracking-widest"></p>
-            </div>
-        </div>
-    </div>
 
-    <div id="modal-scanner" class="fixed inset-0 bg-slate-900/90 backdrop-blur-md z-50 hidden flex items-center justify-center p-4">
-        <div class="w-full max-w-md relative">
-            <button id="btnCloseScanner" class="absolute -top-12 right-0 text-white bg-white/20 px-4 py-2 rounded-full font-bold">ยกเลิก</button>
-            <div class="bg-white rounded-3xl p-4 shadow-2xl">
-                <div class="text-center mb-4 mt-2">
-                    <h3 class="text-lg font-bold text-slate-800">สแกน QR Code</h3>
-                    <p class="text-xs text-slate-500">สแกน QR ของเพื่อนเพื่อโอนเงิน</p>
-                </div>
-                <div id="qr-reader" class="w-full overflow-hidden rounded-2xl bg-slate-100 border-2 border-dashed border-slate-300 min-h-[300px]"></div>
+        </div>
+
+        <div class="bottom-nav">
+            <div class="nav-item active" data-tab="bank-tab-money" onclick="switchBankTab('money')">
+                <span class="nav-icon">💰</span><span>การเงิน</span>
+            </div>
+            <div class="nav-item" data-tab="bank-tab-events" onclick="switchBankTab('events')">
+                <span class="nav-icon">⏱️</span><span>กิจกรรม</span>
+            </div>
+            <div class="nav-item" data-tab="bank-tab-props" onclick="switchBankTab('props')">
+                <span class="nav-icon">🏙️</span><span>โฉนด</span>
             </div>
         </div>
     </div>
 
-    <script type="module">
-        import { initializeApp } from "https://www.gstatic.com/firebasejs/10.8.0/firebase-app.js";
-        import { getAuth, createUserWithEmailAndPassword, signInWithEmailAndPassword, updateProfile, onAuthStateChanged, signOut } from "https://www.gstatic.com/firebasejs/10.8.0/firebase-auth.js";
-        import { getFirestore, doc, setDoc, getDoc, updateDoc, collection, onSnapshot, addDoc, query, orderBy, serverTimestamp, increment, arrayUnion } from "https://www.gstatic.com/firebasejs/10.8.0/firebase-firestore.js";
+    <div id="modal-myqr" class="fixed inset-0 bg-slate-900/60 backdrop-blur-sm z-[100] hidden flex items-center justify-center p-4">
+        <div class="bg-white w-full max-w-xs rounded-3xl p-6 text-center relative shadow-2xl">
+            <button onclick="document.getElementById('modal-myqr').classList.add('hidden')" class="absolute top-4 right-4 text-slate-400 text-xl font-bold">✕</button>
+            <h3 class="text-lg font-bold text-slate-800 mb-1">QR รับเงิน</h3>
+            <p class="text-xs text-slate-500 mb-4">ให้เพื่อนสแกนเพื่อโอนเงิน</p>
+            <div class="bg-slate-50 p-4 rounded-2xl inline-block border border-slate-100 mb-4">
+                <div id="qrcode-container"></div>
+            </div>
+            <div class="bg-indigo-50 rounded-xl p-2 border border-indigo-100">
+                <p class="text-[10px] text-indigo-400 font-bold">เลขบัญชี (ID)</p>
+                <p id="qrAccNoShow" class="text-2xl font-mono font-black text-indigo-600 tracking-widest"></p>
+            </div>
+        </div>
+    </div>
 
-        // ตั้งค่า Firebase ของคุณ
-        const firebaseConfig = {
-            apiKey: "AIzaSyDTKMzJ9dpq8XU5YgDqaYipSjXl83zHpGU",
-            authDomain: "miam-5beca.firebaseapp.com",
-            projectId: "miam-5beca",
-            storageBucket: "miam-5beca.firebasestorage.app",
-            messagingSenderId: "227469961638",
-            appId: "1:227469961638:web:7057cf680d249b05a70767"
-        };
+    <div id="modal-scanner" class="fixed inset-0 bg-black z-[100] hidden flex flex-col h-full">
+        <div class="p-4 flex justify-between items-center bg-black/50 absolute w-full z-10">
+            <h3 class="text-white font-bold">สแกนจ่าย</h3>
+            <button id="btnCloseScanner" class="text-white bg-white/20 px-3 py-1 rounded-full text-xs font-bold">ยกเลิก</button>
+        </div>
+        <div id="qr-reader" class="w-full h-full object-cover"></div>
+    </div>
 
-        const app = initializeApp(firebaseConfig);
-        const auth = getAuth(app);
-        const db = getFirestore(app);
+</div>
 
-        // --- ตัวแปรสถานะ ---
-        let currentUser = null;
-        let currentRoomId = null;
-        let isBanker = false;
-        let myShortId = null;
-        let roomPlayers = []; 
-        let unsubRoom = null, unsubPlayers = null, unsubMe = null, unsubLog = null;
-        let eventTimerInterval = null;
-        let html5QrcodeScanner = null;
+<script type="module">
+    import { initializeApp } from "https://www.gstatic.com/firebasejs/10.8.0/firebase-app.js";
+    import { getAuth, createUserWithEmailAndPassword, signInWithEmailAndPassword, updateProfile, onAuthStateChanged, signOut } from "https://www.gstatic.com/firebasejs/10.8.0/firebase-auth.js";
+    import { getFirestore, doc, setDoc, getDoc, updateDoc, collection, onSnapshot, addDoc, query, orderBy, serverTimestamp, increment, arrayUnion, arrayRemove } from "https://www.gstatic.com/firebasejs/10.8.0/firebase-firestore.js";
 
-        const STARTING_BALANCE = 15000000;
+    // --- Firebase Config ---
+    const firebaseConfig = {
+        apiKey: "AIzaSyDTKMzJ9dpq8XU5YgDqaYipSjXl83zHpGU",
+        authDomain: "miam-5beca.firebaseapp.com",
+        projectId: "miam-5beca",
+        storageBucket: "miam-5beca.firebasestorage.app",
+        messagingSenderId: "227469961638",
+        appId: "1:227469961638:web:7057cf680d249b05a70767"
+    };
 
-        // --- ฟังก์ชัน Utility ---
-        const uiShow = (id) => {
-            ['auth-screen', 'lobby-screen', 'customer-screen', 'bank-screen'].forEach(s => document.getElementById(s).classList.add('hidden'));
-            document.getElementById(id).classList.remove('hidden');
-        };
-        const formatMoney = (n) => new Intl.NumberFormat('th-TH').format(n);
+    const app = initializeApp(firebaseConfig);
+    const auth = getAuth(app);
+    const db = getFirestore(app);
+
+    // --- State Variables ---
+    let currentUser = null, currentRoomId = null, isBanker = false, myShortId = null;
+    let roomPlayers = [], allOwnedProperties = new Set();
+    let unsubRoom = null, unsubPlayers = null, unsubMe = null, unsubLog = null;
+    let eventTimerInterval = null, html5QrcodeScanner = null;
+
+    // --- Utils ---
+    const uiShow = (id) => { ['auth-screen', 'lobby-screen', 'customer-screen', 'bank-screen'].forEach(s => document.getElementById(s).classList.add('hidden')); document.getElementById(id).classList.remove('hidden'); };
+    const formatMoney = (n) => new Intl.NumberFormat('th-TH').format(n);
+    const getPlayerByShortId = (id) => roomPlayers.find(p => p.shortId === id);
+    const generateShortId = (uid) => { let h = 0; for(let i=0;i<uid.length;i++) h=((h<<5)-h)+uid.charCodeAt(i); return Math.abs(h).toString().substring(0,6).padStart(6,'0'); };
+
+    // --- Tab Switchers ---
+    window.switchCustTab = (tabName) => {
+        ['home','transfer','props','history'].forEach(t => {
+            document.getElementById(`cust-tab-${t}`).classList.add('hidden');
+            document.querySelector(`[data-tab="cust-tab-${t}"]`).classList.remove('active');
+        });
+        document.getElementById(`cust-tab-${tabName}`).classList.remove('hidden');
+        document.querySelector(`[data-tab="cust-tab-${tabName}"]`).classList.add('active');
+    };
+    window.switchBankTab = (tabName) => {
+        ['money','events','props'].forEach(t => {
+            document.getElementById(`bank-tab-${t}`).classList.add('hidden');
+            document.querySelector(`[data-tab="bank-tab-${t}"]`).classList.remove('active');
+        });
+        document.getElementById(`bank-tab-${tabName}`).classList.remove('hidden');
+        document.querySelector(`[data-tab="bank-tab-${tabName}"]`).classList.add('active');
+    };
+
+    // ================= AUTH =================
+    onAuthStateChanged(auth, async (user) => {
+        if(user) {
+            currentUser = user; myShortId = generateShortId(user.uid);
+            document.getElementById('lobbyName').innerText = `คุณ ${user.displayName}`;
+            const sR = localStorage.getItem('appRoom'), sRole = localStorage.getItem('appRole');
+            if(sR && sRole) {
+                try {
+                    const snap = await getDoc(doc(db, "rooms", sR));
+                    if(snap.exists()) { await joinSystem(sR, sRole==='bank'); return; }
+                    else localStorage.clear();
+                } catch(e) {}
+            }
+            uiShow('lobby-screen');
+        } else { currentUser = null; localStorage.clear(); uiShow('auth-screen'); }
+    });
+
+    document.getElementById('btnRegister').onclick = async () => {
+        const e=document.getElementById('email').value, p=document.getElementById('password').value, n=document.getElementById('nickname').value;
+        if(!e||!p||!n) return Swal.fire('','กรอกให้ครบ','warning');
+        try { Swal.showLoading(); const c = await createUserWithEmailAndPassword(auth,e,p); await updateProfile(c.user,{displayName:n}); Swal.close(); } catch(err) { Swal.fire('Error',err.message,'error'); }
+    };
+    document.getElementById('btnLogin').onclick = async () => {
+        const e=document.getElementById('email').value, p=document.getElementById('password').value;
+        if(!e||!p) return Swal.fire('','กรอกให้ครบ','warning');
+        try { Swal.showLoading(); await signInWithEmailAndPassword(auth,e,p); Swal.close(); } catch(err) { Swal.fire('Error','รหัสผิด','error'); }
+    };
+    document.querySelectorAll('.btnLogout').forEach(b => b.onclick = () => signOut(auth));
+
+    // ================= LOBBY =================
+    document.getElementById('btnCreateRoom').onclick = async () => {
+        const m = parseInt(document.getElementById('createMaxPlayers').value);
+        const bal = parseInt(document.getElementById('createStartBal').value);
+        if(!m || m<2 || !bal || bal<0) return Swal.fire('','กรอกจำนวนผู้เล่นและเงินเริ่มต้นให้ถูกต้อง','warning');
         
-        // สร้างเลขบัญชี 6 หลักจาก UID (เอา 6 ตัวแรกของ UID มาแปลงเป็นเลข หรือแฮชง่ายๆ)
-        const generateShortId = (uid) => {
-            let hash = 0;
-            for (let i = 0; i < uid.length; i++) hash = ((hash << 5) - hash) + uid.charCodeAt(i);
-            return Math.abs(hash).toString().substring(0, 6).padStart(6, '0');
-        };
+        const roomId = Math.floor(1000 + Math.random() * 9000).toString();
+        try {
+            Swal.showLoading();
+            await setDoc(doc(db, "rooms", roomId), { adminUid: currentUser.uid, maxPlayers: m, startBalance: bal, event: null, createdAt: serverTimestamp() });
+            await addLog(roomId, `🏛️ เปิดสาขาโดยแอดมิน (เงินตั้งต้น ฿${formatMoney(bal)})`);
+            await joinSystem(roomId, true);
+        } catch (err) { Swal.fire('Error', err.message, 'error'); }
+    };
 
-        const getPlayerByShortId = (shortId) => roomPlayers.find(p => p.shortId === shortId);
+    document.getElementById('btnJoinRoom').onclick = async () => {
+        const roomId = document.getElementById('roomCode').value;
+        if(roomId.length !== 4) return Swal.fire('','รหัสต้องมี 4 หลัก','warning');
+        try {
+            Swal.showLoading();
+            const snap = await getDoc(doc(db, "rooms", roomId));
+            if(!snap.exists()) return Swal.fire('','ไม่พบห้อง','error');
+            await joinSystem(roomId, false);
+        } catch (err) { Swal.fire('Error', err.message, 'error'); }
+    };
 
-        // ================= AUTHENTICATION =================
-        onAuthStateChanged(auth, async (user) => {
-            if (user) {
-                currentUser = user;
-                myShortId = generateShortId(user.uid);
-                document.getElementById('lobbyName').innerText = `คุณ ${user.displayName}`;
+    // ================= SYSTEM JOIN & LISTENERS =================
+    async function joinSystem(roomId, isBank) {
+        currentRoomId = roomId; isBanker = isBank;
+        localStorage.setItem('appRoom', roomId); localStorage.setItem('appRole', isBank ? 'bank' : 'cust');
+
+        const roomSnap = await getDoc(doc(db, "rooms", roomId));
+        const rData = roomSnap.data();
+
+        if (!isBanker) {
+            const ref = doc(db, `rooms/${roomId}/players`, currentUser.uid);
+            const snap = await getDoc(ref);
+            if (!snap.exists()) {
+                await setDoc(ref, { uid: currentUser.uid, shortId: myShortId, displayName: currentUser.displayName, balance: rData.startBalance || 15000000, properties: [] });
+                addLog(roomId, `📱 ลูกค้าใหม่เข้าธนาคาร: ${currentUser.displayName}`);
+            }
+            document.getElementById('custName').innerText = currentUser.displayName;
+            document.getElementById('custAvatar').innerText = currentUser.displayName.charAt(0).toUpperCase();
+            document.getElementById('custAccNo').innerText = myShortId;
+            document.getElementById('custRoomIdDisplay').innerText = roomId;
+            uiShow('customer-screen');
+            switchCustTab('home');
+        } else {
+            document.getElementById('bankRoomId').innerText = roomId;
+            uiShow('bank-screen');
+            switchBankTab('money');
+        }
+        Swal.close(); startListeners();
+    }
+
+    function startListeners() {
+        // Room
+        unsubRoom = onSnapshot(doc(db, "rooms", currentRoomId), (docSnap) => {
+            if(!docSnap.exists()) return; handleEventUpdate(docSnap.data().event);
+        });
+
+        // Players (All)
+        unsubPlayers = onSnapshot(collection(db, `rooms/${currentRoomId}/players`), (snap) => {
+            roomPlayers = snap.docs.map(d => d.data());
+            
+            // อัปเดตรายการโฉนดส่วนกลาง (เช็คห้ามซ้ำ)
+            allOwnedProperties.clear();
+            roomPlayers.forEach(p => { if(p.properties) p.properties.forEach(prop => allOwnedProperties.add(prop.toString())); });
+
+            if(isBanker) {
+                document.getElementById('bankUserCount').innerText = roomPlayers.length;
+                // แท็บ: การเงิน
+                document.getElementById('bankPlayerList').innerHTML = roomPlayers.map(p => `
+                    <li class="p-3 flex justify-between items-center">
+                        <div><p class="font-bold text-slate-800 text-sm">${p.displayName}</p><p class="text-[10px] text-slate-400 font-mono">ID: ${p.shortId}</p></div>
+                        <span class="font-black text-indigo-600">฿${formatMoney(p.balance)}</span>
+                    </li>`).join('');
                 
-                // เช็คว่าเคยเข้าห้องค้างไว้ไหม
-                const savedRoom = localStorage.getItem('colorRoomId');
-                const savedRole = localStorage.getItem('colorRole');
-                if (savedRoom && savedRole) {
-                    try {
-                        const snap = await getDoc(doc(db, "rooms", savedRoom));
-                        if(snap.exists()) {
-                            await joinSystem(savedRoom, savedRole === 'bank');
-                            return;
-                        } else localStorage.clear();
-                    } catch(e) {}
-                }
+                // แท็บ: โฉนด
+                document.getElementById('bankPropViewList').innerHTML = roomPlayers.map(p => `
+                    <div class="bg-white border border-slate-100 p-3 rounded-2xl shadow-sm">
+                        <p class="font-bold text-sm text-slate-700 mb-2">${p.displayName}</p>
+                        <div class="flex flex-wrap gap-1">
+                            ${(p.properties||[]).length===0 ? '<span class="text-xs text-slate-400">ไม่มีโฉนด</span>' : p.properties.map(pr => `<span class="bg-pink-50 text-pink-600 border border-pink-200 px-2 py-1 rounded-lg text-xs font-bold">#${pr}</span>`).join('')}
+                        </div>
+                    </div>`).join('');
+            }
+        });
+
+        // Current User (Customer)
+        if(!isBanker) {
+            unsubMe = onSnapshot(doc(db, `rooms/${currentRoomId}/players`, currentUser.uid), (docSnap) => {
+                if(!docSnap.exists()) return; const d = docSnap.data();
+                document.getElementById('custBalance').innerText = formatMoney(d.balance);
+                
+                const props = d.properties || [];
+                document.getElementById('custPropCountBadge').innerText = props.length;
+                document.getElementById('custPropList').innerHTML = props.length===0 ? '<p class="text-xs text-slate-400 w-full text-center">ยังไม่มีโฉนด</p>' : 
+                    props.map(p => `
+                    <div class="bg-pink-50 border border-pink-200 pl-3 pr-1 py-1 rounded-xl flex items-center gap-2 shadow-sm">
+                        <span class="font-bold text-pink-600 text-sm">#${p}</span>
+                        <button onclick="removeProperty('${p}')" class="w-6 h-6 bg-white text-pink-500 rounded-full flex items-center justify-center font-bold text-xs hover:bg-pink-100">✕</button>
+                    </div>`).join('');
+            });
+
+            const qLog = query(collection(db, `rooms/${currentRoomId}/history`), orderBy("timestamp", "desc"));
+            unsubLog = onSnapshot(qLog, (snap) => {
+                document.getElementById('custHistoryFeed').innerHTML = snap.docs.map(doc => {
+                    const l = doc.data(), t = l.timestamp ? new Date(l.timestamp.toDate()).toLocaleTimeString('th-TH',{hour:'2-digit',minute:'2-digit'}) : '';
+                    return `<li class="py-3 flex gap-2"><span class="text-lg">⏺</span><div class="flex-grow"><p class="text-xs text-slate-700 font-medium">${l.msg}</p><p class="text-[9px] text-slate-400">${t}</p></div></li>`;
+                }).join('');
+            });
+        }
+    }
+
+    async function addLog(roomId, msg) { await addDoc(collection(db, `rooms/${roomId}/history`), { msg, timestamp: serverTimestamp() }); }
+
+    // ออกห้อง
+    document.querySelectorAll('.btnLeaveRoom').forEach(b => b.onclick = () => {
+        Swal.fire({ title: 'ปิดแอป?', icon: 'question', showCancelButton: true, confirmButtonColor:'#6366f1' }).then(r => {
+            if(r.isConfirmed) {
+                localStorage.clear(); currentRoomId = null;
+                if(unsubRoom) unsubRoom(); if(unsubPlayers) unsubPlayers(); if(unsubMe) unsubMe(); if(unsubLog) unsubLog();
                 uiShow('lobby-screen');
-            } else {
-                currentUser = null;
-                localStorage.clear();
-                uiShow('auth-screen');
             }
         });
+    });
 
-        document.getElementById('btnRegister').addEventListener('click', async () => {
-            const e=document.getElementById('email').value, p=document.getElementById('password').value, n=document.getElementById('nickname').value;
-            if(!e || !p || !n) return Swal.fire('Oops','กรอกให้ครบทุกช่อง','warning');
-            try { Swal.showLoading(); const c = await createUserWithEmailAndPassword(auth,e,p); await updateProfile(c.user,{displayName:n}); Swal.close(); } catch(err) { Swal.fire('Error',err.message,'error'); }
-        });
-
-        document.getElementById('btnLogin').addEventListener('click', async () => {
-            const e=document.getElementById('email').value, p=document.getElementById('password').value;
-            if(!e || !p) return Swal.fire('Oops','กรอกอีเมลและรหัสผ่าน','warning');
-            try { Swal.showLoading(); await signInWithEmailAndPassword(auth,e,p); Swal.close(); } catch(err) { Swal.fire('Error','รหัสผิด','error'); }
-        });
-
-        document.querySelectorAll('.btnLogout').forEach(b => b.addEventListener('click', () => signOut(auth)));
-
-        // ================= LOBBY =================
-        document.getElementById('btnCreateRoom').addEventListener('click', async () => {
-            const roomId = Math.floor(1000 + Math.random() * 9000).toString();
-            try {
-                Swal.showLoading();
-                await setDoc(doc(db, "rooms", roomId), {
-                    adminUid: currentUser.uid,
-                    createdAt: serverTimestamp(),
-                    event: null // เก็บข้อมูลกิจกรรม { title, endTime }
-                });
-                await addLog(roomId, `🏛️ เปิดสาขาธนาคารโดยผู้จัดการ ${currentUser.displayName}`);
-                await joinSystem(roomId, true);
-            } catch (err) { Swal.fire('Error', err.message, 'error'); }
-        });
-
-        document.getElementById('btnJoinRoom').addEventListener('click', async () => {
-            const roomId = document.getElementById('roomCode').value;
-            if(roomId.length !== 4) return Swal.fire('','รหัสสาขาต้องมี 4 หลัก','warning');
-            try {
-                Swal.showLoading();
-                const snap = await getDoc(doc(db, "rooms", roomId));
-                if (!snap.exists()) return Swal.fire('','ไม่พบสาขานี้','error');
-                await joinSystem(roomId, false);
-            } catch (err) { Swal.fire('Error', err.message, 'error'); }
-        });
-
-        // ================= CORE SYSTEM =================
-        async function joinSystem(roomId, isBank) {
-            currentRoomId = roomId;
-            isBanker = isBank;
-            localStorage.setItem('colorRoomId', roomId);
-            localStorage.setItem('colorRole', isBank ? 'bank' : 'cust');
-
-            if (!isBanker) {
-                // สร้างบัญชีลูกค้า (ถ้ายังไม่มี)
-                const ref = doc(db, `rooms/${roomId}/players`, currentUser.uid);
-                const snap = await getDoc(ref);
-                if (!snap.exists()) {
-                    await setDoc(ref, {
-                        uid: currentUser.uid,
-                        shortId: myShortId,
-                        displayName: currentUser.displayName,
-                        balance: STARTING_BALANCE,
-                        properties: []
-                    });
-                    addLog(roomId, `📱 ลูกค้าใหม่: ${currentUser.displayName} เปิดบัญชีแล้ว`);
-                }
-                
-                // Set Customer UI Info
-                document.getElementById('custName').innerText = currentUser.displayName;
-                document.getElementById('custAvatar').innerText = currentUser.displayName.charAt(0).toUpperCase();
-                document.getElementById('custAccNo').innerText = myShortId;
-                document.getElementById('custRoomIdDisplay').innerText = roomId;
-                uiShow('customer-screen');
-            } else {
-                // Set Bank UI Info
-                document.getElementById('bankAdminName').innerText = currentUser.displayName;
-                document.getElementById('bankRoomId').innerText = roomId;
-                uiShow('bank-screen');
-            }
-            
-            Swal.close();
-            startListeners();
-        }
-
-        function startListeners() {
-            // 1. Listen Room (Events)
-            unsubRoom = onSnapshot(doc(db, "rooms", currentRoomId), (docSnap) => {
-                if(!docSnap.exists()) return;
-                const data = docSnap.data();
-                handleEventUpdate(data.event);
-            });
-
-            // 2. Listen All Players
-            unsubPlayers = onSnapshot(collection(db, `rooms/${currentRoomId}/players`), (snap) => {
-                roomPlayers = snap.docs.map(d => d.data());
-                
-                if(isBanker) {
-                    document.getElementById('bankUserCount').innerText = roomPlayers.length;
-                    const list = document.getElementById('bankPlayerList');
-                    list.innerHTML = roomPlayers.map(p => `
-                        <li class="p-3 flex justify-between items-center hover:bg-slate-50 transition">
-                            <div>
-                                <p class="font-bold text-slate-800 text-sm">${p.displayName}</p>
-                                <p class="text-xs text-slate-400 font-mono">บ/ช: ${p.shortId}</p>
-                            </div>
-                            <span class="font-bold text-indigo-600">฿${formatMoney(p.balance)}</span>
-                        </li>
-                    `).join('');
-                }
-            });
-
-            // 3. Listen Me (Customer Only)
-            if(!isBanker) {
-                unsubMe = onSnapshot(doc(db, `rooms/${currentRoomId}/players`, currentUser.uid), (docSnap) => {
-                    if(!docSnap.exists()) return;
-                    const d = docSnap.data();
-                    
-                    // Animate Balance
-                    const balEl = document.getElementById('custBalance');
-                    balEl.innerText = formatMoney(d.balance);
-                    balEl.classList.add('text-green-300');
-                    setTimeout(() => balEl.classList.remove('text-green-300'), 500);
-                    
-                    // Properties
-                    document.getElementById('custPropCount').innerText = d.properties.length;
-                    const pList = document.getElementById('custPropList');
-                    if(d.properties.length === 0) pList.innerHTML = '<p class="text-xs text-slate-400 w-full text-center py-2">ยังไม่มีโฉนด</p>';
-                    else pList.innerHTML = d.properties.map(p => `<span class="bg-pink-50 text-pink-600 border border-pink-100 px-3 py-1 rounded-xl text-xs font-bold">${p}</span>`).join('');
-                });
-            }
-
-            // 4. Listen History (Customer Feed)
-            if(!isBanker) {
-                const qLog = query(collection(db, `rooms/${currentRoomId}/history`), orderBy("timestamp", "desc"));
-                unsubLog = onSnapshot(qLog, (snap) => {
-                    document.getElementById('custHistoryFeed').innerHTML = snap.docs.map(doc => {
-                        const l = doc.data();
-                        const t = l.timestamp ? new Date(l.timestamp.toDate()).toLocaleTimeString('th-TH',{hour:'2-digit',minute:'2-digit'}) : '';
-                        return `<li class="bg-white p-3 rounded-2xl border border-slate-100 shadow-sm flex gap-3 items-center">
-                                    <div class="flex-grow"><p class="text-xs text-slate-700">${l.msg}</p></div>
-                                    <span class="text-[10px] text-slate-400 whitespace-nowrap">${t}</span>
-                                </li>`;
-                    }).join('');
-                });
-            }
-        }
-
-        async function addLog(roomId, msg) {
-            await addDoc(collection(db, `rooms/${roomId}/history`), { msg, timestamp: serverTimestamp() });
-        }
-
-        document.querySelectorAll('.btnLeaveRoom').forEach(b => b.addEventListener('click', () => {
-            Swal.fire({ title: 'ยืนยัน?', text: "ต้องการปิดแอปใช่หรือไม่", icon: 'question', showCancelButton: true }).then(r => {
-                if(r.isConfirmed) {
-                    localStorage.clear(); currentRoomId = null;
-                    if(unsubRoom) unsubRoom(); if(unsubPlayers) unsubPlayers(); if(unsubMe) unsubMe(); if(unsubLog) unsubLog();
-                    uiShow('lobby-screen');
-                }
-            });
-        }));
-
-        // ================= EVENT (TIMER) SYSTEM =================
-        function handleEventUpdate(evData) {
-            if(eventTimerInterval) clearInterval(eventTimerInterval);
-            
-            const custBanner = document.getElementById('custEventBanner');
-            const bankSetup = document.getElementById('bankEventSetup');
-            const bankActive = document.getElementById('bankEventActive');
-
-            if(!evData) {
-                if(custBanner) custBanner.classList.add('hidden');
-                if(bankSetup) { bankSetup.classList.remove('hidden'); bankActive.classList.add('hidden'); }
-                return;
-            }
-
-            // มีกิจกรรม
-            const endTime = evData.endTime.toDate().getTime();
-            if(custBanner) {
-                custBanner.classList.remove('hidden');
-                document.getElementById('custEventTitle').innerText = evData.title;
-            }
-            if(bankActive) {
-                bankSetup.classList.add('hidden');
-                bankActive.classList.remove('hidden');
-                document.getElementById('bankActiveEventTitle').innerText = evData.title;
-            }
-
-            eventTimerInterval = setInterval(() => {
-                const now = new Date().getTime();
-                const dist = endTime - now;
-                const minStr = Math.floor((dist % (1000 * 60 * 60)) / (1000 * 60)).toString().padStart(2, '0');
-                const secStr = Math.floor((dist % (1000 * 60)) / 1000).toString().padStart(2, '0');
-                const timeText = dist < 0 ? "หมดเวลา!" : `${minStr}:${secStr}`;
-                
-                if(custBanner) document.getElementById('custEventTimer').innerText = timeText;
-                if(bankActive) document.getElementById('bankActiveEventTimer').innerText = timeText;
-                
-                if(dist < 0) clearInterval(eventTimerInterval);
-            }, 1000);
-        }
-
-        // Bank Create Event
-        document.getElementById('btnBankStartEvent')?.addEventListener('click', async () => {
-            const title = document.getElementById('evTitle').value || 'กิจกรรมพิเศษ';
-            const mins = parseInt(document.getElementById('evMins').value);
-            if(!mins || mins <= 0) return Swal.fire('','กรุณาใส่เวลา (นาที)','warning');
-            
-            const endTime = new Date();
-            endTime.setMinutes(endTime.getMinutes() + mins);
-            
-            await updateDoc(doc(db, "rooms", currentRoomId), { event: { title, endTime } });
-            await addLog(currentRoomId, `⏰ แอดมินเริ่มกิจกรรม: "${title}" (${mins} นาที)`);
-            
-            document.getElementById('evTitle').value = ''; document.getElementById('evMins').value = '';
-        });
-
-        // Bank Cancel Event
-        document.getElementById('btnBankCancelEvent')?.addEventListener('click', async () => {
-            await updateDoc(doc(db, "rooms", currentRoomId), { event: null });
-            await addLog(currentRoomId, `❌ แอดมินยกเลิกกิจกรรมแล้ว`);
-        });
-
-
-        // ================= CUSTOMER ACTIONS =================
+    // ================= PROPERTIES MANAGEMENT =================
+    document.getElementById('btnBuyProp').onclick = async () => {
+        const inp = document.getElementById('propNumberInput');
+        const pNum = inp.value.trim();
+        if(!pNum || isNaN(pNum)) return Swal.fire('','กรุณาใส่เฉพาะ "ตัวเลข" โฉนดเท่านั้น','warning');
         
-        // 1. โอนเงินผ่านเลขบัญชี (ID)
-        document.getElementById('btnMenuTransfer')?.addEventListener('click', () => {
-            Swal.fire({
-                title: 'โอนเงิน',
-                html: `
-                    <input id="t-id" type="number" placeholder="เลขบัญชีผู้รับ (6 หลัก)" class="w-full p-4 bg-slate-50 border border-slate-200 rounded-2xl mb-3 text-center text-lg font-mono font-bold text-indigo-600 focus:outline-none focus:border-indigo-400">
-                    <input id="t-amt" type="number" placeholder="จำนวนเงิน" class="w-full p-4 bg-slate-50 border border-slate-200 rounded-2xl text-center text-xl font-bold focus:outline-none focus:border-indigo-400">
-                `,
-                showCancelButton: true, confirmButtonText: 'ตรวจสอบ', confirmButtonColor: '#4f46e5',
-                preConfirm: () => {
-                    const tid = document.getElementById('t-id').value;
-                    const amt = parseInt(document.getElementById('t-amt').value);
-                    if(!tid || isNaN(amt) || amt <= 0) { Swal.showValidationMessage('ข้อมูลไม่ถูกต้อง'); return false; }
-                    const target = getPlayerByShortId(tid);
-                    if(!target) { Swal.showValidationMessage('ไม่พบเลขบัญชีนี้ในสาขา'); return false; }
-                    if(target.uid === currentUser.uid) { Swal.showValidationMessage('โอนให้ตัวเองไม่ได้!'); return false; }
-                    return { target, amt };
-                }
-            }).then(async (result) => {
-                if (result.isConfirmed) {
-                    executeTransfer(result.value.target, result.value.amt);
-                }
-            });
-        });
+        // เช็คซ้ำ
+        if(allOwnedProperties.has(pNum)) return Swal.fire('ไม่ได้!','โฉนดหมายเลขนี้มีคนซื้อไปแล้ว','error');
 
-        // ฟังก์ชันประมวลผลการโอน
-        async function executeTransfer(targetPlayer, amount) {
-            // Confirm Dialog
-            const confirm = await Swal.fire({
-                title: 'ยืนยันการโอน',
-                html: `<p class="text-sm">ผู้รับ: <b class="text-indigo-600">${targetPlayer.displayName}</b></p><p class="text-2xl font-bold mt-2">฿${formatMoney(amount)}</p>`,
-                icon: 'question', showCancelButton: true, confirmButtonText: 'ยืนยันโอนเงิน', confirmButtonColor: '#10b981'
-            });
+        try {
+            await updateDoc(doc(db, `rooms/${currentRoomId}/players`, currentUser.uid), { properties: arrayUnion(pNum) });
+            await addLog(currentRoomId, `📄 ${currentUser.displayName} ได้รับโฉนดหมายเลข #${pNum}`);
+            inp.value = '';
+            Swal.fire({icon:'success', title:'บันทึกสำเร็จ', showConfirmButton:false, timer:1000});
+        } catch(e) { Swal.fire('Error',e.message,'error'); }
+    };
 
-            if(confirm.isConfirmed) {
-                const myD = await getDoc(doc(db, `rooms/${currentRoomId}/players`, currentUser.uid));
-                if(myD.data().balance < amount) return Swal.fire('','ยอดเงินไม่เพียงพอ','error');
-                
-                try {
-                    Swal.showLoading();
-                    await updateDoc(doc(db, `rooms/${currentRoomId}/players`, currentUser.uid), { balance: increment(-amount) });
-                    await updateDoc(doc(db, `rooms/${currentRoomId}/players`, targetPlayer.uid), { balance: increment(amount) });
-                    await addLog(currentRoomId, `💸 ${currentUser.displayName} โอนเงินให้ ${targetPlayer.displayName} (฿${formatMoney(amount)})`);
-                    Swal.fire({icon:'success', title:'โอนสำเร็จ!', showConfirmButton:false, timer:1500});
-                } catch(e) { Swal.fire('Error','โอนล้มเหลว','error'); }
-            }
+    // ฟังก์ชันลบโฉนด (เปิดให้ HTML เรียกใช้ได้)
+    window.removeProperty = async (pNum) => {
+        const confirm = await Swal.fire({ title: `ลบโฉนด #${pNum}?`, text:'ต้องการขายคืน/ลบโฉนดนี้ใช่หรือไม่', showCancelButton: true, confirmButtonColor: '#ef4444' });
+        if(confirm.isConfirmed) {
+            await updateDoc(doc(db, `rooms/${currentRoomId}/players`, currentUser.uid), { properties: arrayRemove(pNum) });
+            await addLog(currentRoomId, `📄 ${currentUser.displayName} นำโฉนด #${pNum} ออกจากระบบ`);
         }
+    };
 
-        // 2. แสดง QR ของฉัน
-        document.getElementById('btnMenuMyQR')?.addEventListener('click', () => {
-            const qrContainer = document.getElementById('qrcode-container');
-            qrContainer.innerHTML = ''; // Clear old QR
-            
-            // สร้าง QR Data (ส่งรูปแบบ json ง่ายๆ ไป)
-            const qrData = JSON.stringify({ action: 'pay', id: myShortId });
-            new QRCode(qrContainer, { text: qrData, width: 200, height: 200, colorDark : "#4f46e5", colorLight : "#ffffff" });
-            
-            document.getElementById('qrAccNo').innerText = myShortId;
-            document.getElementById('modal-myqr').classList.remove('hidden');
+    // ================= CUSTOMER ACTIONS (TRANSFER & QR) =================
+    async function executeTransfer(targetPlayer, amount) {
+        const myD = await getDoc(doc(db, `rooms/${currentRoomId}/players`, currentUser.uid));
+        if(myD.data().balance < amount) return Swal.fire('','เงินไม่พอ!','error');
+        try {
+            Swal.showLoading();
+            await updateDoc(doc(db, `rooms/${currentRoomId}/players`, currentUser.uid), { balance: increment(-amount) });
+            await updateDoc(doc(db, `rooms/${currentRoomId}/players`, targetPlayer.uid), { balance: increment(amount) });
+            await addLog(currentRoomId, `💸 ${currentUser.displayName} โอนให้ ${targetPlayer.displayName} ฿${formatMoney(amount)}`);
+            document.getElementById('t-id').value = ''; document.getElementById('t-amt').value = '';
+            Swal.fire({icon:'success', title:'โอนสำเร็จ!', showConfirmButton:false, timer:1500});
+            switchCustTab('home'); // กลับหน้าแรก
+        } catch(e) { Swal.fire('Error','ล้มเหลว','error'); }
+    }
+
+    document.getElementById('btnConfirmTransfer').onclick = async () => {
+        const tid = document.getElementById('t-id').value; const amt = parseInt(document.getElementById('t-amt').value);
+        if(!tid || isNaN(amt) || amt <= 0) return Swal.fire('','ข้อมูลไม่ถูกต้อง','warning');
+        const target = getPlayerByShortId(tid);
+        if(!target) return Swal.fire('','ไม่พบเลขบัญชีในสาขานี้','error');
+        if(target.uid === currentUser.uid) return Swal.fire('','โอนให้ตัวเองไม่ได้','error');
+        
+        const conf = await Swal.fire({ title: 'ยืนยันโอน', html: `<p>โอนให้: <b>${target.displayName}</b></p><p class="text-2xl font-bold mt-2">฿${formatMoney(amt)}</p>`, showCancelButton:true, confirmButtonColor:'#6366f1' });
+        if(conf.isConfirmed) executeTransfer(target, amt);
+    };
+
+    // QR Features
+    document.getElementById('btnShowMyQR').onclick = () => {
+        const qc = document.getElementById('qrcode-container'); qc.innerHTML = '';
+        new QRCode(qc, { text: JSON.stringify({ act: 'pay', id: myShortId }), width: 180, height: 180, colorDark: "#4f46e5", colorLight: "#ffffff" });
+        document.getElementById('qrAccNoShow').innerText = myShortId;
+        document.getElementById('modal-myqr').classList.remove('hidden');
+    };
+
+    document.getElementById('btnOpenScanner').onclick = () => {
+        document.getElementById('modal-scanner').classList.remove('hidden');
+        html5QrcodeScanner = new Html5Qrcode("qr-reader");
+        html5QrcodeScanner.start({ facingMode: "environment" }, { fps: 10, qrbox: { width: 250, height: 250 } }, (txt) => {
+            html5QrcodeScanner.stop(); document.getElementById('modal-scanner').classList.add('hidden');
+            try {
+                const data = JSON.parse(txt);
+                if(data.act === 'pay' && data.id) {
+                    const target = getPlayerByShortId(data.id);
+                    if(!target) return Swal.fire('','QR นี้ไม่ได้อยู่ในห้องนี้','error');
+                    if(target.uid === currentUser.uid) return Swal.fire('','สแกน QR ตัวเองไม่ได้','error');
+                    document.getElementById('t-id').value = target.shortId;
+                    Swal.fire({ title:`โอนให้ ${target.displayName}`, input:'number', inputPlaceholder:'ใส่ยอดเงิน', showCancelButton:true, confirmButtonColor:'#6366f1' }).then(r=>{
+                        if(r.isConfirmed && r.value>0) executeTransfer(target, parseInt(r.value));
+                    });
+                } else throw new Error();
+            } catch(e) { Swal.fire('','QR ไม่รองรับ','error'); }
+        }, ()=>{});
+    };
+    document.getElementById('btnCloseScanner').onclick = () => {
+        if(html5QrcodeScanner) html5QrcodeScanner.stop().catch(()=>{});
+        document.getElementById('modal-scanner').classList.add('hidden');
+    };
+
+    // ================= BANK ADMIN ACTIONS =================
+    const bankAction = async (isGive) => {
+        const opts = roomPlayers.map(p=>`<option value="${p.uid}">${p.displayName} (${p.shortId})</option>`).join('');
+        const {value: v} = await Swal.fire({
+            title: isGive?'แจกเงิน':'หักเงิน',
+            html: `<select id="b-uid" class="w-full p-4 bg-slate-50 border border-slate-200 rounded-xl mb-3 outline-none font-bold">${opts}</select><input id="b-amt" type="number" placeholder="ยอดเงิน" class="w-full p-4 bg-slate-50 border border-slate-200 rounded-xl outline-none font-bold text-center">`,
+            showCancelButton: true, confirmButtonColor: isGive?'#10b981':'#ef4444',
+            preConfirm: () => ({ u: document.getElementById('b-uid').value, n: document.getElementById('b-uid').options[document.getElementById('b-uid').selectedIndex].text.split(' ')[0], a: parseInt(document.getElementById('b-amt').value) })
         });
+        if(v && v.a > 0) {
+            await updateDoc(doc(db, `rooms/${currentRoomId}/players`, v.u), { balance: increment(isGive?v.a:-v.a) });
+            await addLog(currentRoomId, `${isGive?'🏦 แจกเงิน':'🏛️ หักเงิน'} ${v.n} (฿${formatMoney(v.a)})`);
+            Swal.fire({icon:'success', title:'สำเร็จ', timer:1000, showConfirmButton:false});
+        }
+    };
+    document.getElementById('btnBankGive').onclick = () => bankAction(true);
+    document.getElementById('btnBankTake').onclick = () => bankAction(false);
 
-        // 3. สแกนจ่าย
-        document.getElementById('btnMenuScan')?.addEventListener('click', () => {
-            document.getElementById('modal-scanner').classList.remove('hidden');
-            
-            // ใช้ html5-qrcode library
-            html5QrcodeScanner = new Html5Qrcode("qr-reader");
-            const config = { fps: 10, qrbox: { width: 250, height: 250 } };
+    // ================= EVENT (TIMER) =================
+    function handleEventUpdate(ev) {
+        if(eventTimerInterval) clearInterval(eventTimerInterval);
+        const cBan = document.getElementById('custEventBanner'), bSetup = document.getElementById('bankEventSetup'), bAct = document.getElementById('bankEventActive');
+        if(!ev) {
+            if(cBan) cBan.classList.add('hidden');
+            if(bSetup) { bSetup.classList.remove('hidden'); bAct.classList.add('hidden'); }
+            return;
+        }
+        const endTime = ev.endTime.toDate().getTime();
+        if(cBan) { cBan.classList.remove('hidden'); document.getElementById('custEventTitle').innerText = ev.title; }
+        if(bAct) { bSetup.classList.add('hidden'); bAct.classList.remove('hidden'); document.getElementById('bankActiveTitle').innerText = ev.title; }
 
-            html5QrcodeScanner.start({ facingMode: "environment" }, config, (decodedText) => {
-                // เมื่อสแกนติด
-                html5QrcodeScanner.stop();
-                document.getElementById('modal-scanner').classList.add('hidden');
-                
-                try {
-                    const data = JSON.parse(decodedText);
-                    if(data.action === 'pay' && data.id) {
-                        const target = getPlayerByShortId(data.id);
-                        if(!target) return Swal.fire('','QR Code นี้ไม่ได้อยู่ในห้องนี้','error');
-                        if(target.uid === currentUser.uid) return Swal.fire('','สแกน QR ตัวเองไม่ได้นะ!','error');
-                        
-                        // เปิดหน้าต่างกรอกยอดเงินทันที
-                        Swal.fire({
-                            title: `โอนให้ ${target.displayName}`,
-                            input: 'number', inputPlaceholder: 'ระบุยอดเงิน', inputAttributes: { min: 1 },
-                            showCancelButton: true, confirmButtonText: 'โอนเลย', confirmButtonColor: '#10b981'
-                        }).then((res) => {
-                            if(res.isConfirmed && res.value > 0) executeTransfer(target, parseInt(res.value));
-                        });
-                    } else { throw new Error(); }
-                } catch(e) {
-                    Swal.fire('','QR Code ไม่รองรับ','error');
-                }
-            }, (err) => { /* scanning */ }).catch(err => {
-                document.getElementById('modal-scanner').classList.add('hidden');
-                Swal.fire('กล้องมีปัญหา', 'กรุณาอนุญาตการเข้าถึงกล้อง หรือใช้ปุ่มกรอกเลขบัญชีแทน', 'warning');
-            });
-        });
+        eventTimerInterval = setInterval(() => {
+            const dist = endTime - new Date().getTime();
+            const tTxt = dist < 0 ? "หมดเวลา!" : `${String(Math.floor((dist%(1000*60*60))/(1000*60))).padStart(2,'0')}:${String(Math.floor((dist%(1000*60))/1000)).padStart(2,'0')}`;
+            if(cBan) document.getElementById('custEventTimer').innerText = tTxt;
+            if(bAct) document.getElementById('bankActiveTimer').innerText = tTxt;
+            if(dist < 0) clearInterval(eventTimerInterval);
+        }, 1000);
+    }
 
-        // ปุ่มปิด Modal
-        document.querySelectorAll('.close-modal').forEach(b => b.addEventListener('click', () => {
-            document.getElementById('modal-myqr').classList.add('hidden');
-        }));
-        document.getElementById('btnCloseScanner')?.addEventListener('click', () => {
-            if(html5QrcodeScanner) {
-                html5QrcodeScanner.stop().catch(e=>console.log(e));
-            }
-            document.getElementById('modal-scanner').classList.add('hidden');
-        });
+    document.getElementById('btnBankStartEvent').onclick = async () => {
+        const title = document.getElementById('evTitle').value || 'กิจกรรมด่วน';
+        const mins = parseInt(document.getElementById('evMins').value);
+        if(!mins || mins<=0) return Swal.fire('','ใส่เวลา(นาที)ให้ถูกต้อง','warning');
+        const endTime = new Date(); endTime.setMinutes(endTime.getMinutes() + mins);
+        await updateDoc(doc(db, "rooms", currentRoomId), { event: { title, endTime } });
+        await addLog(currentRoomId, `⏰ แอดมินเริ่มกิจกรรม: "${title}"`);
+        document.getElementById('evTitle').value = ''; document.getElementById('evMins').value = '';
+    };
+    document.getElementById('btnBankCancelEvent').onclick = async () => {
+        await updateDoc(doc(db, "rooms", currentRoomId), { event: null });
+        await addLog(currentRoomId, `❌ ยกเลิกกิจกรรมแล้ว`);
+    };
 
-        // 4. ซื้อที่ดิน
-        document.getElementById('btnMenuBuy')?.addEventListener('click', async () => {
-            const {value: p} = await Swal.fire({ title: 'ซื้อที่ดิน/โฉนด', input: 'text', inputPlaceholder: 'ชื่อพื้นที่ เช่น สีลม, รถไฟ', showCancelButton: true, confirmButtonColor: '#ec4899' });
-            if(p) {
-                await updateDoc(doc(db, `rooms/${currentRoomId}/players`, currentUser.uid), { properties: arrayUnion(p) });
-                await addLog(currentRoomId, `🏠 ${currentUser.displayName} ซื้อที่ดิน: ${p}`);
-            }
-        });
-
-        // ================= BANK ADMIN ACTIONS =================
-        const bankAction = async (isGive) => {
-            const opts = roomPlayers.map(p=>`<option value="${p.uid}">${p.displayName} (${p.shortId})</option>`).join('');
-            const title = isGive ? 'แจกเงินลูกค้า' : 'หักเงิน/ภาษี';
-            const btnColor = isGive ? '#10b981' : '#ef4444';
-            const logIcon = isGive ? '🏦 ธนาคารจ่ายเงินให้' : '🏛️ หักเงิน/ภาษี จาก';
-            
-            const {value: v} = await Swal.fire({
-                title: title,
-                html: `<select id="a-uid" class="w-full p-4 bg-slate-50 border border-slate-200 rounded-2xl mb-3 outline-none focus:border-indigo-400 font-bold">${opts}</select><input id="a-amt" type="number" placeholder="จำนวนเงิน" class="w-full p-4 bg-slate-50 border border-slate-200 rounded-2xl outline-none focus:border-indigo-400 font-bold text-center text-xl">`,
-                showCancelButton: true, confirmButtonText: 'ยืนยัน', confirmButtonColor: btnColor,
-                preConfirm: () => ({ u: document.getElementById('a-uid').value, n: document.getElementById('a-uid').options[document.getElementById('a-uid').selectedIndex].text.split(' ')[0], a: parseInt(document.getElementById('a-amt').value) })
-            });
-
-            if(v && v.a > 0) {
-                const amt = isGive ? v.a : -v.a;
-                await updateDoc(doc(db, `rooms/${currentRoomId}/players`, v.u), { balance: increment(amt) });
-                await addLog(currentRoomId, `${logIcon} ${v.n} (฿${formatMoney(v.a)})`);
-                Swal.fire({icon:'success', title:'สำเร็จ', timer:1000, showConfirmButton:false});
-            }
-        };
-
-        document.getElementById('btnBankGive')?.addEventListener('click', () => bankAction(true));
-        document.getElementById('btnBankTake')?.addEventListener('click', () => bankAction(false));
-
-    </script>
+</script>
 </body>
 </html>
