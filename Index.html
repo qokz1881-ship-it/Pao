@@ -3,17 +3,16 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
-    <title>Colorful Monopoly App</title>
+    <title>Colorful Monopoly App - Pro Version</title>
     
     <script src="https://cdn.tailwindcss.com"></script>
     <script src="https://cdn.jsdelivr.net/npm/sweetalert2@11"></script>
     <script src="https://cdnjs.cloudflare.com/ajax/libs/qrcodejs/1.0.0/qrcode.min.js"></script>
     <script src="https://unpkg.com/html5-qrcode" type="text/javascript"></script>
     
-    <link href="https://fonts.googleapis.com/css2?family=Kanit:wght@300;400;500;600;700&display=swap" rel="stylesheet">
+    <link href="https://fonts.googleapis.com/css2?family=Kanit:wght@300;400;500;600;700;900&display=swap" rel="stylesheet">
     
     <style>
-        :root { --nav-height: 70px; }
         body { 
             font-family: 'Kanit', sans-serif; 
             background: linear-gradient(135deg, #fdfbfb 0%, #ebedee 100%);
@@ -23,7 +22,6 @@
             -webkit-tap-highlight-color: transparent;
         }
         
-        /* App Container for Mobile View */
         .app-container {
             width: 100%; max-width: 480px; height: 100vh;
             margin: 0 auto; background: #f8fafc;
@@ -34,305 +32,340 @@
 
         .hidden { display: none !important; }
         
-        /* Colorful Cards */
-        .bank-card { background: linear-gradient(135deg, #667eea 0%, #764ba2 100%); color: white; }
-        .customer-card { background: linear-gradient(135deg, #ff9a9e 0%, #fecfef 99%, #fecfef 100%); color: #333; }
+        /* Premium Card Styles */
+        .bank-card { background: linear-gradient(135deg, #4f46e5 0%, #7c3aed 100%); color: white; }
+        .customer-card { background: linear-gradient(135deg, #ff758c 0%, #ff7eb3 100%); color: white; }
+        .glass-panel { background: rgba(255, 255, 255, 0.7); backdrop-filter: blur(10px); border: 1px solid rgba(255,255,255,0.5); }
         
-        /* Bottom Navigation */
-        .bottom-nav {
-            position: absolute; bottom: 0; width: 100%; height: var(--nav-height);
-            background: rgba(255, 255, 255, 0.95); backdrop-filter: blur(10px);
-            border-top: 1px solid #e2e8f0; display: flex; justify-content: space-around;
-            align-items: center; padding-bottom: env(safe-area-inset-bottom); z-index: 50;
-        }
-        .nav-item {
-            display: flex; flex-direction: column; items-center; justify-content: center;
-            width: 25%; height: 100%; color: #94a3b8; font-size: 10px; font-weight: 600; transition: 0.2s;
-            text-align: center; cursor: pointer;
-        }
-        .nav-item.active { color: #6366f1; transform: translateY(-2px); }
-        .nav-icon { font-size: 24px; margin-bottom: 2px; }
-        .nav-item.active .nav-icon { transform: scale(1.1); filter: drop-shadow(0 2px 4px rgba(99,102,241,0.4)); }
-
-        /* Scrollable Content Area */
         .content-area {
-            flex-grow: 1; overflow-y: auto; padding-bottom: calc(var(--nav-height) + 20px);
-            scrollbar-width: none; /* Firefox */
+            flex-grow: 1; overflow-y: auto; padding-bottom: 20px;
+            scrollbar-width: none;
         }
-        .content-area::-webkit-scrollbar { display: none; } /* Chrome */
+        .content-area::-webkit-scrollbar { display: none; }
 
         /* Animations */
         @keyframes fadeIn { from { opacity: 0; transform: translateY(10px); } to { opacity: 1; transform: translateY(0); } }
-        .tab-content { animation: fadeIn 0.3s ease forwards; }
+        .tab-content { animation: fadeIn 0.4s ease forwards; }
+
+        /* Sidebar Transition */
+        #appSidebar { transition: transform 0.3s cubic-bezier(0.4, 0, 0.2, 1); }
+        #appSidebarOverlay { transition: opacity 0.3s ease; }
     </style>
 </head>
 <body>
 
 <div class="app-container" id="app">
 
-    <div id="auth-screen" class="w-full h-full flex flex-col justify-center p-8 bg-gradient-to-br from-indigo-100 to-purple-100 hidden">
-        <div class="text-center mb-10">
-            <div class="w-24 h-24 bg-white rounded-3xl flex items-center justify-center text-5xl mx-auto mb-4 shadow-xl">🏦</div>
-            <h1 class="text-3xl font-bold text-indigo-800 tracking-wide">M-BANKING</h1>
-            <p class="text-indigo-500 mt-1 font-medium">เกมเศรษฐี สมาร์ทแบงก์</p>
+    <div id="appSidebarOverlay" class="fixed inset-0 bg-slate-900/40 z-[190] hidden opacity-0 backdrop-blur-sm" onclick="toggleSidebar()"></div>
+    <div id="appSidebar" class="absolute inset-y-0 left-0 w-72 bg-white shadow-2xl z-[200] transform -translate-x-full flex flex-col rounded-r-3xl">
+        <div class="p-8 bg-gradient-to-br from-indigo-500 to-purple-600 text-white rounded-br-[3rem] relative shadow-lg">
+            <h2 class="text-3xl font-black tracking-wide shadow-black drop-shadow-md" id="sidebarTitle">M-BANKING</h2>
+            <p class="text-sm text-indigo-100 font-medium mt-1">Smart Monopoly System</p>
+            <button onclick="toggleSidebar()" class="absolute top-6 right-6 text-white/80 hover:text-white text-2xl active:scale-90 transition">✕</button>
         </div>
-        <div class="space-y-4 bg-white/60 p-6 rounded-3xl backdrop-blur-md shadow-lg border border-white">
-            <input id="email" type="email" placeholder="อีเมลเข้าสู่ระบบ" class="w-full p-4 bg-white rounded-2xl focus:ring-2 focus:ring-indigo-400 outline-none text-slate-700 font-medium">
-            <input id="password" type="password" placeholder="รหัสผ่าน" class="w-full p-4 bg-white rounded-2xl focus:ring-2 focus:ring-indigo-400 outline-none text-slate-700 font-medium">
-            <input id="nickname" type="text" placeholder="ชื่อเล่น (ใส่ตอนสมัครใหม่เท่านั้น)" class="w-full p-4 bg-white rounded-2xl focus:ring-2 focus:ring-indigo-400 outline-none text-slate-700 font-medium">
+        <div class="flex-1 overflow-y-auto p-5 space-y-2 mt-2" id="sidebarMenuContent">
+            </div>
+        <div class="p-5 border-t border-slate-100 bg-slate-50 rounded-br-3xl">
+            <button class="btnLogout w-full p-4 bg-white text-red-500 border border-red-100 rounded-2xl font-bold flex items-center justify-center gap-2 hover:bg-red-50 shadow-sm transition active:scale-95">
+                <span class="text-xl">🚪</span> ออกจากระบบ
+            </button>
+        </div>
+    </div>
+
+    <div id="auth-screen" class="w-full h-full flex flex-col justify-center p-8 bg-gradient-to-br from-indigo-50 to-purple-100 hidden">
+        <div class="text-center mb-10 tab-content">
+            <div class="w-24 h-24 bg-white rounded-[2rem] flex items-center justify-center text-5xl mx-auto mb-5 shadow-2xl shadow-indigo-200/50">🏦</div>
+            <h1 class="text-4xl font-black text-indigo-800 tracking-wide drop-shadow-sm">M-BANKING</h1>
+            <p class="text-indigo-500 mt-2 font-semibold">เกมเศรษฐี สมาร์ทแบงก์</p>
+        </div>
+        <div class="space-y-4 glass-panel p-6 rounded-[2rem] shadow-xl tab-content" style="animation-delay: 0.1s;">
+            <input id="email" type="email" placeholder="อีเมลเข้าสู่ระบบ" class="w-full p-4 bg-white/90 rounded-2xl focus:ring-4 focus:ring-indigo-100 outline-none text-slate-700 font-medium transition-all">
+            <input id="password" type="password" placeholder="รหัสผ่าน" class="w-full p-4 bg-white/90 rounded-2xl focus:ring-4 focus:ring-indigo-100 outline-none text-slate-700 font-medium transition-all">
+            <input id="nickname" type="text" placeholder="ชื่อเล่น (ใส่ตอนสมัครใหม่เท่านั้น)" class="w-full p-4 bg-white/90 rounded-2xl focus:ring-4 focus:ring-indigo-100 outline-none text-slate-700 font-medium transition-all">
             
-            <button id="btnLogin" class="w-full bg-indigo-600 text-white p-4 rounded-2xl font-bold text-lg hover:bg-indigo-700 shadow-lg shadow-indigo-200 mt-2 transition active:scale-95">เข้าสู่ระบบ</button>
-            <button id="btnRegister" class="w-full bg-transparent text-indigo-600 p-4 border-2 border-indigo-200 rounded-2xl font-bold hover:bg-indigo-50 transition active:scale-95">เปิดบัญชีใหม่</button>
+            <button id="btnLogin" class="w-full bg-gradient-to-r from-indigo-600 to-purple-600 text-white p-4 rounded-2xl font-bold text-lg hover:shadow-lg hover:shadow-indigo-300/50 mt-4 transition-all active:scale-95">เข้าสู่ระบบ</button>
+            <button id="btnRegister" class="w-full bg-white text-indigo-600 p-4 border border-indigo-100 rounded-2xl font-bold hover:bg-indigo-50 transition-all active:scale-95 shadow-sm">เปิดบัญชีใหม่</button>
         </div>
     </div>
 
     <div id="lobby-screen" class="w-full h-full overflow-y-auto p-6 bg-slate-50 hidden">
-        <div class="flex justify-between items-center mb-8 mt-4">
+        <div class="flex justify-between items-center mb-8 mt-4 tab-content">
             <div>
-                <h2 class="text-2xl font-bold text-slate-800">ล็อบบี้</h2>
-                <p class="text-indigo-600 font-bold" id="lobbyName">คุณ: ...</p>
+                <h2 class="text-3xl font-black text-slate-800 tracking-tight">ล็อบบี้</h2>
+                <p class="text-indigo-600 font-bold mt-1" id="lobbyName">คุณ: ...</p>
             </div>
-            <button class="btnLogout p-2 bg-slate-200 text-slate-600 rounded-xl font-bold text-xs hover:bg-slate-300">ออกระบบ</button>
+            <button class="btnLogout p-3 bg-white border border-slate-200 text-slate-600 rounded-2xl font-bold text-sm shadow-sm hover:bg-slate-50 transition active:scale-95">ออกระบบ</button>
         </div>
 
-        <div class="bg-white p-6 rounded-3xl shadow-sm border border-slate-100 mb-6 text-center">
-            <div class="text-4xl mb-2">📱</div>
-            <h3 class="font-bold text-slate-800 mb-4">เข้าสู่ระบบธนาคาร (ผู้เล่น)</h3>
-            <input id="roomCode" type="number" placeholder="รหัสห้อง 4 หลัก" class="w-full p-4 bg-slate-50 border border-slate-200 rounded-2xl text-center text-2xl font-bold text-indigo-600 mb-3 outline-none focus:border-indigo-400">
-            <button id="btnJoinRoom" class="w-full bg-gradient-to-r from-pink-500 to-orange-400 text-white p-4 rounded-2xl font-bold shadow-lg shadow-orange-200 active:scale-95 transition">เข้าห้อง</button>
+        <div class="bg-white p-6 rounded-[2rem] shadow-lg shadow-slate-200/50 border border-slate-100 mb-6 text-center tab-content relative overflow-hidden" style="animation-delay: 0.1s;">
+            <div class="absolute -right-4 -top-4 w-24 h-24 bg-orange-100 rounded-full blur-2xl opacity-60"></div>
+            <div class="text-5xl mb-3 relative z-10">📱</div>
+            <h3 class="font-bold text-slate-800 text-lg mb-4 relative z-10">เข้าสู่ระบบธนาคาร (ผู้เล่น)</h3>
+            <input id="roomCode" type="number" placeholder="รหัสห้อง 4 หลัก" class="w-full p-4 bg-slate-50 border border-slate-200 rounded-2xl text-center text-3xl font-black text-indigo-600 mb-4 outline-none focus:border-indigo-400 focus:ring-4 focus:ring-indigo-50 transition-all relative z-10">
+            <button id="btnJoinRoom" class="w-full bg-gradient-to-r from-pink-500 to-orange-400 text-white p-4 rounded-2xl font-bold text-lg shadow-lg shadow-orange-200 hover:shadow-xl active:scale-95 transition-all relative z-10">เข้าห้อง</button>
         </div>
 
-        <div class="bg-indigo-50 p-6 rounded-3xl border border-indigo-100 text-center relative overflow-hidden">
-            <div class="absolute top-0 right-0 p-4 opacity-10 text-6xl">🏛️</div>
-            <h3 class="font-bold text-indigo-800 mb-1">สร้างสาขาธนาคาร (แอดมิน)</h3>
-            <p class="text-xs text-indigo-500 mb-4">ตั้งค่าเกมก่อนเริ่ม</p>
+        <div class="bg-indigo-50 p-6 rounded-[2rem] shadow-lg shadow-indigo-100/50 border border-indigo-100 text-center relative overflow-hidden tab-content" style="animation-delay: 0.2s;">
+            <div class="absolute top-0 right-0 p-4 opacity-10 text-7xl">🏛️</div>
+            <h3 class="font-bold text-indigo-800 text-lg mb-1 relative z-10">สร้างสาขาธนาคาร (แอดมิน)</h3>
+            <p class="text-xs text-indigo-500 mb-5 relative z-10 font-medium">ตั้งค่าระบบส่วนกลางก่อนเริ่มเกม</p>
             
-            <div class="space-y-3 mb-4 text-left">
-                <div>
-                    <label class="text-xs font-bold text-indigo-600 ml-1">จำนวนผู้เล่นทั้งหมด</label>
-                    <input id="createMaxPlayers" type="number" placeholder="เช่น 4" class="w-full p-3 bg-white border border-indigo-200 rounded-xl font-bold text-slate-700 outline-none">
+            <div class="space-y-4 mb-5 text-left relative z-10">
+                <div class="bg-white p-3 rounded-2xl border border-indigo-50">
+                    <label class="text-xs font-bold text-indigo-400 ml-1 block mb-1">จำนวนผู้เล่นทั้งหมด</label>
+                    <input id="createMaxPlayers" type="number" placeholder="เช่น 4" class="w-full p-2 bg-transparent font-black text-slate-700 text-lg outline-none">
                 </div>
-                <div>
-                    <label class="text-xs font-bold text-indigo-600 ml-1">เงินเริ่มต้นต่อคน (฿)</label>
-                    <input id="createStartBal" type="number" value="15000000" class="w-full p-3 bg-white border border-indigo-200 rounded-xl font-bold text-slate-700 outline-none">
+                <div class="bg-white p-3 rounded-2xl border border-indigo-50">
+                    <label class="text-xs font-bold text-indigo-400 ml-1 block mb-1">เงินเริ่มต้นต่อคน (฿)</label>
+                    <input id="createStartBal" type="number" value="15000000" class="w-full p-2 bg-transparent font-black text-slate-700 text-lg outline-none">
                 </div>
             </div>
-            <button id="btnCreateRoom" class="w-full bg-indigo-600 text-white p-4 rounded-2xl font-bold shadow-lg shadow-indigo-200 active:scale-95 transition">สร้างห้องใหม่</button>
+            <button id="btnCreateRoom" class="w-full bg-indigo-600 text-white p-4 rounded-2xl font-bold text-lg shadow-lg shadow-indigo-200 hover:bg-indigo-700 active:scale-95 transition-all relative z-10">สร้างห้องใหม่</button>
         </div>
     </div>
 
     <div id="customer-screen" class="w-full h-full hidden flex flex-col relative">
         
-        <div class="pt-10 pb-4 px-6 bg-white flex justify-between items-center border-b border-slate-100 z-10 shadow-sm">
-            <div class="flex items-center gap-3">
-                <div class="w-10 h-10 rounded-full bg-gradient-to-tr from-pink-400 to-orange-400 text-white flex items-center justify-center font-bold text-lg" id="custAvatar">A</div>
-                <div>
-                    <h2 class="font-bold text-slate-800 text-sm" id="custName">Name</h2>
-                    <p class="text-[10px] text-slate-500 font-mono">ID: <span id="custAccNo" class="font-bold text-indigo-600">000000</span> | ห้อง <span id="custRoomIdDisplay">--</span></p>
+        <div class="pt-12 pb-5 px-6 bg-white/80 backdrop-blur-md flex justify-between items-center border-b border-slate-100 z-10 shadow-sm sticky top-0">
+            <div class="flex items-center gap-4">
+                <button onclick="toggleSidebar()" class="text-3xl text-slate-700 -ml-2 p-2 rounded-2xl hover:bg-slate-100 transition-all active:scale-90">
+                    <div class="space-y-1.5"><div class="w-6 h-0.5 bg-slate-800 rounded"></div><div class="w-6 h-0.5 bg-slate-800 rounded"></div><div class="w-4 h-0.5 bg-slate-800 rounded"></div></div>
+                </button>
+                <div class="flex items-center gap-3">
+                    <div class="w-12 h-12 rounded-full bg-gradient-to-tr from-pink-400 to-orange-400 text-white flex items-center justify-center font-black text-xl shadow-md border-2 border-white" id="custAvatar">A</div>
+                    <div>
+                        <h2 class="font-bold text-slate-800 text-base" id="custName">Name</h2>
+                        <p class="text-[11px] text-slate-500 font-medium">ID: <span id="custAccNo" class="font-bold text-indigo-600">000000</span> | ห้อง <span id="custRoomIdDisplay">--</span></p>
+                    </div>
                 </div>
             </div>
-            <button class="btnLeaveRoom w-8 h-8 bg-slate-100 text-slate-500 rounded-full flex items-center justify-center font-bold">✕</button>
         </div>
 
-        <div class="content-area bg-slate-50 px-4 pt-4 relative">
+        <div class="content-area bg-slate-50 px-5 pt-5 relative">
             
             <div id="cust-tab-home" class="tab-content">
-                <div class="customer-card rounded-3xl p-6 mb-4 relative shadow-lg">
-                    <p class="text-slate-700 font-bold text-sm mb-1">ยอดเงินคงเหลือ</p>
-                    <div class="flex items-baseline gap-1">
-                        <span class="text-xl font-bold text-slate-700">฿</span>
-                        <span id="custBalance" class="text-4xl font-black tracking-tight text-slate-800">0</span>
+                <div class="customer-card rounded-[2rem] p-7 mb-5 relative shadow-xl shadow-pink-200/50 overflow-hidden">
+                    <div class="absolute -right-10 -bottom-10 w-40 h-40 bg-white opacity-10 rounded-full blur-2xl"></div>
+                    <p class="text-white/80 font-bold text-sm mb-1 tracking-wide">ยอดเงินคงเหลือ</p>
+                    <div class="flex items-baseline gap-2 mb-2">
+                        <span class="text-2xl font-bold text-white/90">฿</span>
+                        <span id="custBalance" class="text-5xl font-black tracking-tighter text-white drop-shadow-sm">0</span>
                     </div>
                 </div>
 
-                <div id="custEventBanner" class="bg-gradient-to-r from-indigo-500 to-purple-500 rounded-2xl p-4 text-white shadow-lg mb-4 hidden">
+                <div id="custEventBanner" class="bg-gradient-to-r from-indigo-500 to-purple-600 rounded-3xl p-5 text-white shadow-lg shadow-indigo-200/50 mb-6 hidden border border-indigo-400">
                     <div class="flex justify-between items-center">
-                        <div>
-                            <h4 class="font-bold text-sm">🔥 กิจกรรมด่วน!</h4>
-                            <p id="custEventTitle" class="text-xs text-indigo-100">กำลังโหลด...</p>
+                        <div class="flex items-center gap-3">
+                            <span class="text-3xl animate-bounce">🔥</span>
+                            <div>
+                                <h4 class="font-bold text-sm text-indigo-100">กิจกรรมด่วน!</h4>
+                                <p id="custEventTitle" class="text-base font-black">กำลังโหลด...</p>
+                            </div>
                         </div>
-                        <div class="text-right">
-                            <p id="custEventTimer" class="font-mono font-black text-2xl text-yellow-300 tracking-wider">00:00</p>
+                        <div class="text-right bg-black/20 px-3 py-1.5 rounded-xl">
+                            <p id="custEventTimer" class="font-mono font-black text-2xl text-yellow-300 tracking-wider drop-shadow-md">00:00</p>
                         </div>
                     </div>
                 </div>
 
-                <h3 class="font-bold text-slate-800 mb-2 px-2 text-sm">ทางลัด</h3>
-                <div class="grid grid-cols-2 gap-3">
-                    <button class="bg-white p-4 rounded-2xl border border-slate-100 shadow-sm flex items-center gap-3 active:scale-95 transition" onclick="switchCustTab('transfer')">
-                        <div class="text-3xl">💸</div>
-                        <div class="text-left"><p class="font-bold text-sm text-slate-700">โอนเงิน</p><p class="text-[10px] text-slate-400">ให้เพื่อนในห้อง</p></div>
+                <h3 class="font-bold text-slate-800 mb-3 px-2 text-base">ทางลัดทำรายการ</h3>
+                <div class="grid grid-cols-2 gap-4">
+                    <button class="bg-white p-5 rounded-3xl border border-slate-100 shadow-sm flex flex-col items-start gap-3 active:scale-95 transition-all hover:shadow-md hover:border-indigo-100 group" onclick="switchCustTab('transfer')">
+                        <div class="w-12 h-12 rounded-2xl bg-indigo-50 text-indigo-600 flex items-center justify-center text-2xl group-hover:scale-110 transition-transform">💸</div>
+                        <div class="text-left"><p class="font-bold text-sm text-slate-700">โอนเงิน</p><p class="text-[10px] text-slate-400">โอนให้เพื่อน</p></div>
                     </button>
-                    <button class="bg-white p-4 rounded-2xl border border-slate-100 shadow-sm flex items-center gap-3 active:scale-95 transition" id="btnShowMyQR">
-                        <div class="text-3xl">🔳</div>
+                    <button class="bg-white p-5 rounded-3xl border border-slate-100 shadow-sm flex flex-col items-start gap-3 active:scale-95 transition-all hover:shadow-md hover:border-pink-100 group" id="btnShowMyQR">
+                        <div class="w-12 h-12 rounded-2xl bg-pink-50 text-pink-600 flex items-center justify-center text-2xl group-hover:scale-110 transition-transform">🔳</div>
                         <div class="text-left"><p class="font-bold text-sm text-slate-700">รับเงิน</p><p class="text-[10px] text-slate-400">โชว์ QR Code</p></div>
                     </button>
                 </div>
             </div>
 
             <div id="cust-tab-transfer" class="tab-content hidden">
-                <h2 class="font-bold text-lg text-slate-800 mb-4 px-2">โอนเงิน / สแกนจ่าย</h2>
+                <h2 class="font-black text-2xl text-slate-800 mb-5 px-1 tracking-tight">โอนเงิน / สแกนจ่าย</h2>
                 
-                <div class="bg-white p-5 rounded-3xl shadow-sm border border-slate-100 mb-4">
-                    <button id="btnOpenScanner" class="w-full bg-emerald-50 text-emerald-600 p-4 rounded-2xl font-bold mb-4 border border-emerald-100 flex justify-center items-center gap-2 active:bg-emerald-100">
+                <div class="bg-white p-6 rounded-[2rem] shadow-sm border border-slate-100 mb-5">
+                    <button id="btnOpenScanner" class="w-full bg-emerald-50 text-emerald-600 p-4 rounded-2xl font-bold text-lg mb-6 border border-emerald-100 flex justify-center items-center gap-3 hover:bg-emerald-100 transition active:scale-95 shadow-sm">
                         <span class="text-2xl">📷</span> สแกน QR โค้ด
                     </button>
                     
-                    <div class="flex items-center mb-4">
+                    <div class="flex items-center mb-6">
                         <div class="flex-grow border-t border-slate-100"></div>
-                        <span class="mx-4 text-slate-400 text-xs font-bold">หรือกรอกเลขบัญชี</span>
+                        <span class="mx-4 text-slate-400 text-xs font-bold uppercase tracking-wider">หรือกรอกข้อมูล</span>
                         <div class="flex-grow border-t border-slate-100"></div>
                     </div>
 
-                    <div class="space-y-3">
-                        <input id="t-id" type="number" placeholder="เลขบัญชี 6 หลัก" class="w-full p-4 bg-slate-50 border border-slate-200 rounded-xl text-center text-lg font-mono font-bold text-indigo-600 outline-none focus:border-indigo-400">
-                        <input id="t-amt" type="number" placeholder="จำนวนเงิน ฿" class="w-full p-4 bg-slate-50 border border-slate-200 rounded-xl text-center text-xl font-bold text-slate-800 outline-none focus:border-indigo-400">
-                        <button id="btnConfirmTransfer" class="w-full bg-indigo-600 text-white p-4 rounded-xl font-bold shadow-lg shadow-indigo-200 active:scale-95">ตรวจสอบข้อมูล</button>
+                    <div class="space-y-4">
+                        <div class="bg-slate-50 p-2 rounded-2xl border border-slate-100 focus-within:border-indigo-400 focus-within:ring-2 focus-within:ring-indigo-50 transition-all">
+                            <label class="text-[10px] font-bold text-slate-400 ml-2 block uppercase tracking-widest">เลขบัญชีปลายทาง</label>
+                            <input id="t-id" type="number" placeholder="6 หลัก" class="w-full p-2 bg-transparent text-2xl font-mono font-black text-indigo-600 outline-none text-center tracking-widest">
+                        </div>
+                        <div class="bg-slate-50 p-2 rounded-2xl border border-slate-100 focus-within:border-pink-400 focus-within:ring-2 focus-within:ring-pink-50 transition-all">
+                            <label class="text-[10px] font-bold text-slate-400 ml-2 block uppercase tracking-widest">จำนวนเงิน</label>
+                            <input id="t-amt" type="number" placeholder="0.00 ฿" class="w-full p-2 bg-transparent text-3xl font-black text-slate-800 outline-none text-center">
+                        </div>
+                        <button id="btnConfirmTransfer" class="w-full bg-indigo-600 text-white p-4 rounded-2xl font-bold text-lg shadow-lg shadow-indigo-200 active:scale-95 transition-transform hover:bg-indigo-700 mt-2">ตรวจสอบข้อมูล</button>
                     </div>
                 </div>
             </div>
 
-            <div id="cust-tab-props" class="tab-content hidden h-full flex flex-col">
-                <h2 class="font-bold text-lg text-slate-800 mb-2 px-2">โฉนดที่ดินของฉัน</h2>
+            <div id="cust-tab-loan" class="tab-content hidden">
+                <h2 class="font-black text-2xl text-slate-800 mb-5 px-1 tracking-tight">สินเชื่อ / กู้ยืม</h2>
+                <div id="custLoanDisplay" class="bg-white p-8 rounded-[2rem] shadow-sm border border-slate-100 text-center">
+                    </div>
+            </div>
+
+            <div id="cust-tab-props" class="tab-content hidden flex flex-col">
+                <h2 class="font-black text-2xl text-slate-800 mb-5 px-1 tracking-tight">โฉนดที่ดินของฉัน</h2>
                 
-                <div class="bg-white p-4 rounded-3xl shadow-sm border border-slate-100 mb-4 flex gap-2">
-                    <input id="propNumberInput" type="number" placeholder="กรอกเลขโฉนด" class="w-full p-3 bg-slate-50 border border-slate-200 rounded-xl font-bold text-indigo-600 outline-none text-center">
-                    <button id="btnBuyProp" class="bg-pink-500 text-white px-6 rounded-xl font-bold shadow-md hover:bg-pink-600 whitespace-nowrap">บันทึก</button>
+                <div class="bg-white p-5 rounded-[2rem] shadow-sm border border-slate-100 mb-5 flex gap-3 focus-within:ring-2 focus-within:ring-pink-100 transition-all">
+                    <input id="propNumberInput" type="number" placeholder="กรอกเลขโฉนดที่ซื้อ" class="w-full p-2 bg-transparent font-black text-xl text-indigo-600 outline-none text-center">
+                    <button id="btnBuyProp" class="bg-pink-500 text-white px-6 rounded-2xl font-bold text-lg shadow-md hover:bg-pink-600 shadow-pink-200 whitespace-nowrap active:scale-95 transition">บันทึก</button>
                 </div>
 
-                <div class="flex justify-between items-center px-2 mb-2">
-                    <p class="text-xs font-bold text-slate-500">รายการที่ครอบครอง</p>
-                    <span id="custPropCountBadge" class="bg-slate-200 text-slate-600 px-2 py-0.5 rounded-full text-[10px] font-bold">0</span>
+                <div class="flex justify-between items-center px-2 mb-3">
+                    <p class="text-sm font-bold text-slate-500">รายการที่ครอบครอง</p>
+                    <span id="custPropCountBadge" class="bg-slate-800 text-white px-3 py-1 rounded-full text-xs font-bold shadow-sm">0</span>
                 </div>
                 
-                <div class="bg-white rounded-3xl shadow-sm border border-slate-100 flex-grow p-4 overflow-y-auto">
-                    <div id="custPropList" class="flex flex-wrap gap-2">
-                        </div>
+                <div class="bg-white rounded-[2rem] shadow-sm border border-slate-100 flex-grow p-5 min-h-[200px]">
+                    <div id="custPropList" class="flex flex-wrap gap-3"></div>
                 </div>
             </div>
 
             <div id="cust-tab-history" class="tab-content hidden">
-                <h2 class="font-bold text-lg text-slate-800 mb-4 px-2">ประวัติการทำรายการ</h2>
-                <div class="bg-white rounded-3xl shadow-sm border border-slate-100 overflow-hidden">
-                    <ul id="custHistoryFeed" class="divide-y divide-slate-50 p-2"></ul>
+                <h2 class="font-black text-2xl text-slate-800 mb-5 px-1 tracking-tight">ประวัติทำรายการ</h2>
+                <div class="bg-white rounded-[2rem] shadow-sm border border-slate-100 overflow-hidden">
+                    <ul id="custHistoryFeed" class="divide-y divide-slate-50 p-3"></ul>
                 </div>
             </div>
 
-        </div>
-
-        <div class="bottom-nav">
-            <div class="nav-item active" data-tab="cust-tab-home" onclick="switchCustTab('home')">
-                <span class="nav-icon">🏠</span><span>หน้าหลัก</span>
-            </div>
-            <div class="nav-item" data-tab="cust-tab-transfer" onclick="switchCustTab('transfer')">
-                <span class="nav-icon">💸</span><span>โอนเงิน</span>
-            </div>
-            <div class="nav-item" data-tab="cust-tab-props" onclick="switchCustTab('props')">
-                <span class="nav-icon">📄</span><span>โฉนด</span>
-            </div>
-            <div class="nav-item" data-tab="cust-tab-history" onclick="switchCustTab('history')">
-                <span class="nav-icon">🕒</span><span>ประวัติ</span>
-            </div>
         </div>
     </div>
 
-    <div id="bank-screen" class="w-full h-full hidden flex flex-col relative">
+    <div id="bank-screen" class="w-full h-full hidden flex flex-col relative bg-slate-100">
         
-        <div class="bank-card pt-10 pb-6 px-6 z-10 shadow-lg relative">
-            <button class="btnLeaveRoom absolute top-10 right-6 text-white/80 bg-white/20 px-3 py-1 rounded-full text-xs font-bold">ปิดสาขา</button>
-            <h1 class="text-2xl font-black tracking-wide mb-1">🏛️ ธนาคารกลาง</h1>
-            <div class="flex justify-between items-end mt-4">
-                <div>
-                    <p class="text-[10px] text-white/70 uppercase tracking-widest">รหัสห้อง (สำหรับเข้าเล่น)</p>
-                    <p id="bankRoomId" class="text-4xl font-black text-yellow-300 tracking-widest mt-1"></p>
+        <div class="bank-card pt-12 pb-8 px-6 z-10 shadow-xl relative rounded-b-[2rem]">
+            <div class="flex justify-between items-start mb-6">
+                <div class="flex items-center gap-3">
+                    <button onclick="toggleSidebar()" class="text-3xl text-white -ml-2 p-1 rounded-xl hover:bg-white/20 transition-all active:scale-95">
+                        <div class="space-y-1.5"><div class="w-6 h-0.5 bg-white rounded"></div><div class="w-6 h-0.5 bg-white rounded"></div><div class="w-4 h-0.5 bg-white rounded"></div></div>
+                    </button>
+                    <h1 class="text-2xl font-black tracking-wide drop-shadow-md">🏛️ ระบบส่วนกลาง</h1>
                 </div>
-                <div class="text-right">
-                    <p class="text-[10px] text-white/70">ผู้เล่น</p>
-                    <p id="bankUserCount" class="text-2xl font-bold">0</p>
+            </div>
+            <div class="flex justify-between items-end bg-white/10 p-4 rounded-2xl border border-white/20 backdrop-blur-sm">
+                <div>
+                    <p class="text-[10px] text-indigo-200 uppercase tracking-widest font-bold mb-1">รหัสห้องเล่นเกม</p>
+                    <p id="bankRoomId" class="text-5xl font-black text-white tracking-widest drop-shadow-md"></p>
+                </div>
+                <div class="text-center bg-white/20 px-4 py-2 rounded-xl">
+                    <p class="text-[10px] text-indigo-100 font-bold">ผู้เล่น</p>
+                    <p id="bankUserCount" class="text-2xl font-black drop-shadow-md">0</p>
                 </div>
             </div>
         </div>
 
-        <div class="content-area bg-slate-50 p-4 relative">
+        <div class="content-area p-5 relative">
             
             <div id="bank-tab-money" class="tab-content">
-                <div class="grid grid-cols-2 gap-3 mb-4">
-                    <button id="btnBankGive" class="bg-emerald-50 text-emerald-600 border border-emerald-200 p-4 rounded-2xl font-bold flex flex-col items-center justify-center active:bg-emerald-100">
-                        <span class="text-3xl mb-1">🏦⬆️</span> แจกเงิน
+                <h2 class="font-black text-xl text-slate-800 mb-4 px-1">จัดการการเงิน</h2>
+                <div class="grid grid-cols-2 gap-4 mb-6">
+                    <button id="btnBankGive" class="bg-white border border-emerald-100 shadow-sm p-5 rounded-3xl font-bold flex flex-col items-center justify-center hover:bg-emerald-50 active:scale-95 transition-all group">
+                        <div class="w-14 h-14 bg-emerald-100 text-emerald-600 rounded-2xl flex items-center justify-center text-3xl mb-2 group-hover:scale-110 transition-transform shadow-sm">🏦</div>
+                        <span class="text-slate-700">แจกเงิน / โบนัส</span>
                     </button>
-                    <button id="btnBankTake" class="bg-red-50 text-red-600 border border-red-200 p-4 rounded-2xl font-bold flex flex-col items-center justify-center active:bg-red-100">
-                        <span class="text-3xl mb-1">🏛️⬇️</span> หักเงิน
+                    <button id="btnBankTake" class="bg-white border border-red-100 shadow-sm p-5 rounded-3xl font-bold flex flex-col items-center justify-center hover:bg-red-50 active:scale-95 transition-all group">
+                        <div class="w-14 h-14 bg-red-100 text-red-600 rounded-2xl flex items-center justify-center text-3xl mb-2 group-hover:scale-110 transition-transform shadow-sm">💸</div>
+                        <span class="text-slate-700">หักเงิน / ค่าปรับ</span>
                     </button>
                 </div>
 
-                <h3 class="font-bold text-slate-800 text-sm mb-2 px-1">รายชื่อผู้เล่น</h3>
+                <h3 class="font-bold text-slate-800 text-sm mb-3 px-1 flex justify-between items-center">
+                    รายชื่อผู้เล่นในห้อง <span class="bg-indigo-100 text-indigo-700 px-2 py-0.5 rounded text-[10px]">Real-time</span>
+                </h3>
                 <div class="bg-white rounded-3xl shadow-sm border border-slate-100 overflow-hidden">
                     <ul id="bankPlayerList" class="divide-y divide-slate-50 p-2"></ul>
                 </div>
             </div>
 
-            <div id="bank-tab-events" class="tab-content hidden">
-                <h2 class="font-bold text-lg text-slate-800 mb-4 px-2">จัดการกิจกรรม / เวลา</h2>
+            <div id="bank-tab-loan" class="tab-content hidden">
+                <h2 class="font-black text-xl text-slate-800 mb-4 px-1">ระบบสินเชื่อกลาง</h2>
                 
-                <div class="bg-white p-5 rounded-3xl shadow-sm border border-slate-100">
+                <div class="bg-white p-6 rounded-[2rem] shadow-sm border border-slate-100 mb-6">
+                    <h3 class="font-bold text-indigo-600 mb-4 text-sm flex items-center gap-2">
+                        <span class="text-xl">💳</span> ปล่อยเงินกู้ให้ผู้เล่น
+                    </h3>
+                    <div class="space-y-3">
+                        <select id="bankLoanUid" class="w-full p-3 bg-slate-50 border border-slate-200 rounded-xl outline-none font-bold text-slate-700 focus:border-indigo-400 transition-all"></select>
+                        <input id="bankLoanAmt" type="number" placeholder="ยอดเงินกู้ (฿)" class="w-full p-3 bg-slate-50 border border-slate-200 rounded-xl outline-none font-black text-lg text-slate-800 focus:border-indigo-400 transition-all">
+                        <input id="bankLoanMins" type="number" placeholder="เวลาคืนเงิน (ระบุเป็นนาที)" class="w-full p-3 bg-slate-50 border border-slate-200 rounded-xl outline-none font-bold text-slate-700 focus:border-indigo-400 transition-all">
+                        <button id="btnBankGrantLoan" class="w-full bg-gradient-to-r from-indigo-500 to-purple-500 text-white font-bold p-4 rounded-xl shadow-lg shadow-indigo-200 active:scale-95 transition-all mt-2">อนุมัติสินเชื่อ</button>
+                    </div>
+                </div>
+
+                <h3 class="font-bold text-slate-800 text-sm mb-3 px-1">รายชื่อลูกหนี้ค้างชำระ</h3>
+                <div class="bg-white rounded-[2rem] shadow-sm border border-slate-100 overflow-hidden min-h-[100px] p-2">
+                    <ul id="bankDebtorList" class="divide-y divide-slate-50 space-y-2"></ul>
+                </div>
+            </div>
+
+            <div id="bank-tab-events" class="tab-content hidden">
+                <h2 class="font-black text-xl text-slate-800 mb-4 px-1">จัดการกิจกรรม / เวลา</h2>
+                
+                <div class="bg-white p-6 rounded-[2rem] shadow-sm border border-slate-100">
                     <div id="bankEventActive" class="hidden text-center mb-6 pb-6 border-b border-slate-100">
-                        <p class="text-xs text-indigo-500 font-bold mb-1">กิจกรรมที่กำลังทำงาน</p>
-                        <h4 id="bankActiveTitle" class="text-lg font-bold text-slate-800 mb-2">--</h4>
-                        <p id="bankActiveTimer" class="text-4xl font-mono font-black text-indigo-600 mb-4">00:00</p>
-                        <button id="btnBankCancelEvent" class="bg-red-50 text-red-500 px-6 py-2 rounded-xl font-bold text-sm border border-red-100">ยกเลิกกิจกรรม</button>
+                        <div class="w-16 h-16 bg-indigo-50 text-indigo-500 rounded-full flex items-center justify-center text-3xl mx-auto mb-3 animate-pulse">⏳</div>
+                        <p class="text-xs text-indigo-500 font-bold mb-1 uppercase tracking-widest">กำลังทำงาน</p>
+                        <h4 id="bankActiveTitle" class="text-xl font-black text-slate-800 mb-2">--</h4>
+                        <p id="bankActiveTimer" class="text-5xl font-mono font-black text-indigo-600 mb-5 drop-shadow-sm">00:00</p>
+                        <button id="btnBankCancelEvent" class="bg-white text-red-500 px-8 py-3 rounded-2xl font-bold border-2 border-red-100 hover:bg-red-50 transition active:scale-95 shadow-sm">ยกเลิกกิจกรรม</button>
                     </div>
 
                     <div id="bankEventSetup">
-                        <label class="text-xs font-bold text-slate-500 ml-1">ชื่อกิจกรรม</label>
-                        <input id="evTitle" type="text" placeholder="เช่น แจกโบนัส, ประมูล..." class="w-full p-3 bg-slate-50 border border-slate-200 rounded-xl mb-3 outline-none focus:border-indigo-400 text-sm font-bold">
-                        <label class="text-xs font-bold text-slate-500 ml-1">เวลา (นาที)</label>
-                        <input id="evMins" type="number" placeholder="เช่น 3" class="w-full p-3 bg-slate-50 border border-slate-200 rounded-xl mb-4 outline-none focus:border-indigo-400 text-sm font-bold">
-                        <button id="btnBankStartEvent" class="w-full bg-indigo-600 text-white font-bold p-3 rounded-xl shadow-lg active:scale-95">เริ่มจับเวลา</button>
+                        <div class="space-y-4 mb-5">
+                            <div class="bg-slate-50 p-3 rounded-2xl border border-slate-100 focus-within:border-indigo-300 transition-all">
+                                <label class="text-[10px] font-bold text-slate-400 ml-1 uppercase">ชื่อกิจกรรม (เช่น ประมูล, แจกเงิน)</label>
+                                <input id="evTitle" type="text" placeholder="ตั้งชื่อกิจกรรม..." class="w-full p-2 bg-transparent outline-none font-bold text-lg text-slate-700">
+                            </div>
+                            <div class="bg-slate-50 p-3 rounded-2xl border border-slate-100 focus-within:border-indigo-300 transition-all">
+                                <label class="text-[10px] font-bold text-slate-400 ml-1 uppercase">เวลาที่ใช้ (นาที)</label>
+                                <input id="evMins" type="number" placeholder="เช่น 3" class="w-full p-2 bg-transparent outline-none font-black text-2xl text-slate-800">
+                            </div>
+                        </div>
+                        <button id="btnBankStartEvent" class="w-full bg-slate-800 text-white font-bold text-lg p-4 rounded-2xl shadow-lg shadow-slate-300 active:scale-95 transition-all">เริ่มจับเวลา ⏱️</button>
                     </div>
                 </div>
             </div>
 
             <div id="bank-tab-props" class="tab-content hidden">
-                <h2 class="font-bold text-lg text-slate-800 mb-4 px-2">ตรวจสอบโฉนด</h2>
-                <p class="text-xs text-slate-500 mb-4 px-2">รายชื่อผู้เล่นและโฉนดหมายเลขที่ครอบครอง</p>
-                <div id="bankPropViewList" class="space-y-3">
-                    </div>
+                <h2 class="font-black text-xl text-slate-800 mb-2 px-1">ตรวจสอบโฉนด</h2>
+                <p class="text-xs text-slate-500 mb-5 px-2 font-medium">ดูรายการโฉนดทั้งหมดที่ถูกซื้อไปแล้ว</p>
+                <div id="bankPropViewList" class="space-y-3"></div>
             </div>
 
-        </div>
-
-        <div class="bottom-nav">
-            <div class="nav-item active" data-tab="bank-tab-money" onclick="switchBankTab('money')">
-                <span class="nav-icon">💰</span><span>การเงิน</span>
-            </div>
-            <div class="nav-item" data-tab="bank-tab-events" onclick="switchBankTab('events')">
-                <span class="nav-icon">⏱️</span><span>กิจกรรม</span>
-            </div>
-            <div class="nav-item" data-tab="bank-tab-props" onclick="switchBankTab('props')">
-                <span class="nav-icon">🏙️</span><span>โฉนด</span>
-            </div>
         </div>
     </div>
 
-    <div id="modal-myqr" class="fixed inset-0 bg-slate-900/60 backdrop-blur-sm z-[100] hidden flex items-center justify-center p-4">
-        <div class="bg-white w-full max-w-xs rounded-3xl p-6 text-center relative shadow-2xl">
-            <button onclick="document.getElementById('modal-myqr').classList.add('hidden')" class="absolute top-4 right-4 text-slate-400 text-xl font-bold">✕</button>
-            <h3 class="text-lg font-bold text-slate-800 mb-1">QR รับเงิน</h3>
-            <p class="text-xs text-slate-500 mb-4">ให้เพื่อนสแกนเพื่อโอนเงิน</p>
-            <div class="bg-slate-50 p-4 rounded-2xl inline-block border border-slate-100 mb-4">
+    <div id="modal-myqr" class="fixed inset-0 bg-slate-900/60 backdrop-blur-sm z-[300] hidden flex items-center justify-center p-4 opacity-0 transition-opacity duration-300">
+        <div class="bg-white w-full max-w-sm rounded-[2rem] p-8 text-center relative shadow-2xl transform scale-95 transition-transform duration-300" id="qrCard">
+            <button onclick="closeQRModal()" class="absolute top-5 right-5 w-8 h-8 bg-slate-100 text-slate-500 rounded-full font-bold hover:bg-slate-200 transition">✕</button>
+            <h3 class="text-2xl font-black text-slate-800 mb-1">สแกนเพื่อรับเงิน</h3>
+            <p class="text-sm text-slate-500 mb-6 font-medium">ให้เพื่อนสแกนผ่านแอป M-Banking</p>
+            <div class="bg-white p-4 rounded-[2rem] inline-block border-2 border-indigo-100 shadow-lg shadow-indigo-100/50 mb-6">
                 <div id="qrcode-container"></div>
             </div>
-            <div class="bg-indigo-50 rounded-xl p-2 border border-indigo-100">
-                <p class="text-[10px] text-indigo-400 font-bold">เลขบัญชี (ID)</p>
-                <p id="qrAccNoShow" class="text-2xl font-mono font-black text-indigo-600 tracking-widest"></p>
+            <div class="bg-indigo-50 rounded-2xl p-4 border border-indigo-100">
+                <p class="text-[10px] text-indigo-400 font-bold uppercase tracking-widest mb-1">เลขบัญชีของคุณ</p>
+                <p id="qrAccNoShow" class="text-3xl font-mono font-black text-indigo-600 tracking-widest drop-shadow-sm"></p>
             </div>
         </div>
     </div>
 
-    <div id="modal-scanner" class="fixed inset-0 bg-black z-[100] hidden flex flex-col h-full">
-        <div class="p-4 flex justify-between items-center bg-black/50 absolute w-full z-10">
-            <h3 class="text-white font-bold">สแกนจ่าย</h3>
-            <button id="btnCloseScanner" class="text-white bg-white/20 px-3 py-1 rounded-full text-xs font-bold">ยกเลิก</button>
+    <div id="modal-scanner" class="fixed inset-0 bg-black z-[300] hidden flex flex-col h-full">
+        <div class="p-6 flex justify-between items-center bg-gradient-to-b from-black/80 to-transparent absolute w-full z-10">
+            <h3 class="text-white font-bold text-lg">สแกน QR Code</h3>
+            <button id="btnCloseScanner" class="text-white bg-white/20 px-4 py-2 rounded-full text-sm font-bold backdrop-blur-md">ยกเลิก</button>
         </div>
         <div id="qr-reader" class="w-full h-full object-cover"></div>
     </div>
@@ -361,8 +394,48 @@
     // --- State Variables ---
     let currentUser = null, currentRoomId = null, isBanker = false, myShortId = null;
     let roomPlayers = [], allOwnedProperties = new Set();
+    let currentCustomerData = null;
     let unsubRoom = null, unsubPlayers = null, unsubMe = null, unsubLog = null;
-    let eventTimerInterval = null, html5QrcodeScanner = null;
+    let eventTimerInterval = null, globalTimerInterval = null, html5QrcodeScanner = null;
+
+    // --- Global Timers ---
+    globalTimerInterval = setInterval(() => {
+        const now = new Date().getTime();
+        
+        // สำหรับอัปเดตหน้าลูกค้า (ถ้ามีหนี้)
+        if (!isBanker && currentCustomerData && currentCustomerData.loan && currentCustomerData.loan.amount > 0) {
+            const dueDate = currentCustomerData.loan.dueDate.toDate().getTime();
+            const dist = dueDate - now;
+            const el = document.getElementById('custLoanTimerDisplay');
+            if(el) {
+                if(dist <= 0) { el.innerHTML = `<span class="text-red-600 font-black animate-pulse">⚠️ เกินกำหนดชำระ!</span>`; }
+                else {
+                    const m = Math.floor(dist / 60000);
+                    const s = Math.floor((dist % 60000) / 1000);
+                    el.innerText = `${m} น. ${String(s).padStart(2,'0')} ว.`;
+                }
+            }
+        }
+
+        // สำหรับอัปเดตหน้ารายชื่อลูกหนี้ของธนาคาร
+        if (isBanker && roomPlayers.length > 0) {
+            roomPlayers.forEach(p => {
+                if(p.loan && p.loan.amount > 0) {
+                    const dueDate = p.loan.dueDate.toDate().getTime();
+                    const dist = dueDate - now;
+                    const el = document.getElementById(`debtor-timer-${p.uid}`);
+                    if(el) {
+                        if(dist <= 0) { el.innerHTML = `<span class="bg-red-100 text-red-600 px-2 py-1 rounded text-[10px] font-bold">เลยกำหนด!</span>`; }
+                        else {
+                            const m = Math.floor(dist / 60000);
+                            const s = Math.floor((dist % 60000) / 1000);
+                            el.innerHTML = `<span class="bg-orange-100 text-orange-600 px-2 py-1 rounded text-[10px] font-bold">เหลือ ${m}:${String(s).padStart(2,'0')}</span>`;
+                        }
+                    }
+                }
+            });
+        }
+    }, 1000);
 
     // --- Utils ---
     const uiShow = (id) => { ['auth-screen', 'lobby-screen', 'customer-screen', 'bank-screen'].forEach(s => document.getElementById(s).classList.add('hidden')); document.getElementById(id).classList.remove('hidden'); };
@@ -370,22 +443,78 @@
     const getPlayerByShortId = (id) => roomPlayers.find(p => p.shortId === id);
     const generateShortId = (uid) => { let h = 0; for(let i=0;i<uid.length;i++) h=((h<<5)-h)+uid.charCodeAt(i); return Math.abs(h).toString().substring(0,6).padStart(6,'0'); };
 
-    // --- Tab Switchers ---
-    window.switchCustTab = (tabName) => {
-        ['home','transfer','props','history'].forEach(t => {
-            document.getElementById(`cust-tab-${t}`).classList.add('hidden');
-            document.querySelector(`[data-tab="cust-tab-${t}"]`).classList.remove('active');
-        });
-        document.getElementById(`cust-tab-${tabName}`).classList.remove('hidden');
-        document.querySelector(`[data-tab="cust-tab-${tabName}"]`).classList.add('active');
+    // --- Sidebar Menu System ---
+    window.toggleSidebar = () => {
+        const sb = document.getElementById('appSidebar');
+        const overlay = document.getElementById('appSidebarOverlay');
+        if (sb.classList.contains('-translate-x-full')) {
+            sb.classList.remove('-translate-x-full');
+            overlay.classList.remove('hidden');
+            setTimeout(() => overlay.classList.remove('opacity-0'), 10);
+            renderSidebar();
+        } else {
+            sb.classList.add('-translate-x-full');
+            overlay.classList.add('opacity-0');
+            setTimeout(() => overlay.classList.add('hidden'), 300);
+        }
     };
-    window.switchBankTab = (tabName) => {
-        ['money','events','props'].forEach(t => {
-            document.getElementById(`bank-tab-${t}`).classList.add('hidden');
-            document.querySelector(`[data-tab="bank-tab-${t}"]`).classList.remove('active');
+
+    function renderSidebar() {
+        const menuContent = document.getElementById('sidebarMenuContent');
+        let html = '';
+        if(isBanker) {
+            const menu = [
+                { id: 'money', icon: '💰', text: 'การเงินส่วนกลาง' },
+                { id: 'loan', icon: '💳', text: 'ระบบสินเชื่อ' },
+                { id: 'events', icon: '⏱️', text: 'กิจกรรม & เวลา' },
+                { id: 'props', icon: '🏙️', text: 'ตรวจสอบโฉนด' }
+            ];
+            html = menu.map(m => `
+                <button onclick="switchBankTab('${m.id}')" data-side-tab="bank-tab-${m.id}" class="w-full text-left p-4 rounded-2xl font-bold flex items-center gap-4 transition-all duration-200 hover:bg-indigo-50 active:scale-95 text-slate-600">
+                    <span class="text-2xl">${m.icon}</span> ${m.text}
+                </button>
+            `).join('');
+        } else {
+            const menu = [
+                { id: 'home', icon: '🏠', text: 'หน้าหลักบัญชี' },
+                { id: 'transfer', icon: '💸', text: 'โอนเงิน / สแกน' },
+                { id: 'loan', icon: '💳', text: 'สินเชื่อ / กู้ยืม' },
+                { id: 'props', icon: '📄', text: 'โฉนดที่ดินของฉัน' },
+                { id: 'history', icon: '🕒', text: 'ประวัติรายการ' }
+            ];
+            html = menu.map(m => `
+                <button onclick="switchCustTab('${m.id}')" data-side-tab="cust-tab-${m.id}" class="w-full text-left p-4 rounded-2xl font-bold flex items-center gap-4 transition-all duration-200 hover:bg-pink-50 active:scale-95 text-slate-600">
+                    <span class="text-2xl">${m.icon}</span> ${m.text}
+                </button>
+            `).join('');
+        }
+        menuContent.innerHTML = html;
+        updateSidebarActiveState();
+    }
+
+    function updateSidebarActiveState() {
+        document.querySelectorAll('[data-side-tab]').forEach(btn => {
+            btn.classList.remove('bg-indigo-50', 'bg-pink-50', 'text-indigo-600', 'text-pink-600');
+            const targetId = btn.getAttribute('data-side-tab');
+            const content = document.getElementById(targetId);
+            if(content && !content.classList.contains('hidden')) {
+                btn.classList.add(isBanker ? 'bg-indigo-50' : 'bg-pink-50', isBanker ? 'text-indigo-600' : 'text-pink-600');
+            }
         });
+    }
+
+    window.switchCustTab = (tabName) => {
+        ['home','transfer','loan','props','history'].forEach(t => document.getElementById(`cust-tab-${t}`).classList.add('hidden'));
+        document.getElementById(`cust-tab-${tabName}`).classList.remove('hidden');
+        updateSidebarActiveState();
+        if(!document.getElementById('appSidebar').classList.contains('-translate-x-full')) toggleSidebar();
+    };
+    
+    window.switchBankTab = (tabName) => {
+        ['money','loan','events','props'].forEach(t => document.getElementById(`bank-tab-${t}`).classList.add('hidden'));
         document.getElementById(`bank-tab-${tabName}`).classList.remove('hidden');
-        document.querySelector(`[data-tab="bank-tab-${tabName}"]`).classList.add('active');
+        updateSidebarActiveState();
+        if(!document.getElementById('appSidebar').classList.contains('-translate-x-full')) toggleSidebar();
     };
 
     // ================= AUTH =================
@@ -415,7 +544,11 @@
         if(!e||!p) return Swal.fire('','กรอกให้ครบ','warning');
         try { Swal.showLoading(); await signInWithEmailAndPassword(auth,e,p); Swal.close(); } catch(err) { Swal.fire('Error','รหัสผิด','error'); }
     };
-    document.querySelectorAll('.btnLogout').forEach(b => b.onclick = () => signOut(auth));
+    document.querySelectorAll('.btnLogout').forEach(b => b.onclick = () => {
+        Swal.fire({ title: 'ออกจากระบบ?', icon: 'question', showCancelButton: true, confirmButtonColor:'#ef4444' }).then(r => {
+            if(r.isConfirmed) signOut(auth);
+        });
+    });
 
     // ================= LOBBY =================
     document.getElementById('btnCreateRoom').onclick = async () => {
@@ -455,7 +588,7 @@
             const ref = doc(db, `rooms/${roomId}/players`, currentUser.uid);
             const snap = await getDoc(ref);
             if (!snap.exists()) {
-                await setDoc(ref, { uid: currentUser.uid, shortId: myShortId, displayName: currentUser.displayName, balance: rData.startBalance || 15000000, properties: [] });
+                await setDoc(ref, { uid: currentUser.uid, shortId: myShortId, displayName: currentUser.displayName, balance: rData.startBalance || 15000000, properties: [], loan: null });
                 addLog(roomId, `📱 ลูกค้าใหม่เข้าธนาคาร: ${currentUser.displayName}`);
             }
             document.getElementById('custName').innerText = currentUser.displayName;
@@ -473,60 +606,105 @@
     }
 
     function startListeners() {
-        // Room
         unsubRoom = onSnapshot(doc(db, "rooms", currentRoomId), (docSnap) => {
             if(!docSnap.exists()) return; handleEventUpdate(docSnap.data().event);
         });
 
-        // Players (All)
         unsubPlayers = onSnapshot(collection(db, `rooms/${currentRoomId}/players`), (snap) => {
             roomPlayers = snap.docs.map(d => d.data());
             
-            // อัปเดตรายการโฉนดส่วนกลาง (เช็คห้ามซ้ำ)
             allOwnedProperties.clear();
             roomPlayers.forEach(p => { if(p.properties) p.properties.forEach(prop => allOwnedProperties.add(prop.toString())); });
 
             if(isBanker) {
                 document.getElementById('bankUserCount').innerText = roomPlayers.length;
-                // แท็บ: การเงิน
+                
+                // Bank Tab: Money
                 document.getElementById('bankPlayerList').innerHTML = roomPlayers.map(p => `
-                    <li class="p-3 flex justify-between items-center">
-                        <div><p class="font-bold text-slate-800 text-sm">${p.displayName}</p><p class="text-[10px] text-slate-400 font-mono">ID: ${p.shortId}</p></div>
-                        <span class="font-black text-indigo-600">฿${formatMoney(p.balance)}</span>
+                    <li class="p-4 flex justify-between items-center hover:bg-slate-50 transition">
+                        <div>
+                            <p class="font-bold text-slate-800">${p.displayName}</p>
+                            <p class="text-xs text-slate-400 font-mono mt-0.5">ID: ${p.shortId}</p>
+                        </div>
+                        <span class="font-black text-lg text-indigo-600 bg-indigo-50 px-3 py-1 rounded-xl">฿${formatMoney(p.balance)}</span>
                     </li>`).join('');
                 
-                // แท็บ: โฉนด
+                // Bank Tab: Props
                 document.getElementById('bankPropViewList').innerHTML = roomPlayers.map(p => `
-                    <div class="bg-white border border-slate-100 p-3 rounded-2xl shadow-sm">
-                        <p class="font-bold text-sm text-slate-700 mb-2">${p.displayName}</p>
-                        <div class="flex flex-wrap gap-1">
-                            ${(p.properties||[]).length===0 ? '<span class="text-xs text-slate-400">ไม่มีโฉนด</span>' : p.properties.map(pr => `<span class="bg-pink-50 text-pink-600 border border-pink-200 px-2 py-1 rounded-lg text-xs font-bold">#${pr}</span>`).join('')}
+                    <div class="bg-white border border-slate-100 p-4 rounded-3xl shadow-sm">
+                        <p class="font-bold text-sm text-slate-700 mb-3 border-b border-slate-50 pb-2 flex justify-between"><span>${p.displayName}</span> <span class="text-xs text-slate-400">โฉนด: ${(p.properties||[]).length}</span></p>
+                        <div class="flex flex-wrap gap-2">
+                            ${(p.properties||[]).length===0 ? '<span class="text-xs text-slate-400">ยังไม่มีโฉนด</span>' : p.properties.map(pr => `<span class="bg-pink-50 text-pink-600 border border-pink-100 px-3 py-1.5 rounded-xl text-xs font-bold shadow-sm">#${pr}</span>`).join('')}
                         </div>
                     </div>`).join('');
+
+                // Bank Tab: Loan
+                const pOpts = roomPlayers.map(p => `<option value="${p.uid}">${p.displayName} (${p.shortId})</option>`).join('');
+                const sel = document.getElementById('bankLoanUid');
+                const currSel = sel.value; sel.innerHTML = pOpts; if(currSel) sel.value = currSel;
+
+                const debtors = roomPlayers.filter(p => p.loan && p.loan.amount > 0);
+                document.getElementById('bankDebtorList').innerHTML = debtors.length === 0 ? '<p class="text-center text-xs text-slate-400 py-4">ไม่มีผู้ค้างชำระ</p>' : 
+                    debtors.map(d => `
+                        <li class="p-3 bg-white rounded-2xl border border-slate-50 flex justify-between items-center">
+                            <div>
+                                <p class="font-bold text-sm text-slate-800">${d.displayName}</p>
+                                <p class="text-xs font-black text-red-500 mt-0.5">฿${formatMoney(d.loan.amount)}</p>
+                            </div>
+                            <div id="debtor-timer-${d.uid}"></div>
+                        </li>
+                    `).join('');
             }
         });
 
-        // Current User (Customer)
         if(!isBanker) {
             unsubMe = onSnapshot(doc(db, `rooms/${currentRoomId}/players`, currentUser.uid), (docSnap) => {
                 if(!docSnap.exists()) return; const d = docSnap.data();
+                currentCustomerData = d;
                 document.getElementById('custBalance').innerText = formatMoney(d.balance);
                 
                 const props = d.properties || [];
                 document.getElementById('custPropCountBadge').innerText = props.length;
-                document.getElementById('custPropList').innerHTML = props.length===0 ? '<p class="text-xs text-slate-400 w-full text-center">ยังไม่มีโฉนด</p>' : 
+                document.getElementById('custPropList').innerHTML = props.length===0 ? '<div class="w-full text-center mt-10"><span class="text-4xl opacity-20 block mb-2">📄</span><p class="text-xs text-slate-400">ยังไม่มีโฉนด</p></div>' : 
                     props.map(p => `
-                    <div class="bg-pink-50 border border-pink-200 pl-3 pr-1 py-1 rounded-xl flex items-center gap-2 shadow-sm">
-                        <span class="font-bold text-pink-600 text-sm">#${p}</span>
-                        <button onclick="removeProperty('${p}')" class="w-6 h-6 bg-white text-pink-500 rounded-full flex items-center justify-center font-bold text-xs hover:bg-pink-100">✕</button>
+                    <div class="bg-gradient-to-br from-pink-50 to-orange-50 border border-pink-100 pl-4 pr-2 py-2 rounded-2xl flex items-center gap-3 shadow-sm hover:shadow-md transition">
+                        <span class="font-black text-pink-600 text-lg">#${p}</span>
+                        <button onclick="removeProperty('${p}')" class="w-8 h-8 bg-white text-pink-500 rounded-full flex items-center justify-center font-bold text-xs hover:bg-pink-100 shadow-sm transition active:scale-90">✕</button>
                     </div>`).join('');
+
+                // Update Loan View for Customer
+                const loanDisp = document.getElementById('custLoanDisplay');
+                if(d.loan && d.loan.amount > 0) {
+                    loanDisp.innerHTML = `
+                        <div class="w-16 h-16 bg-red-50 text-red-500 rounded-full flex items-center justify-center text-3xl mx-auto mb-3">💳</div>
+                        <p class="text-slate-500 font-bold text-sm mb-1">ยอดหนี้ที่ต้องชำระ</p>
+                        <p class="text-4xl font-black text-slate-800 mb-4 tracking-tighter">฿${formatMoney(d.loan.amount)}</p>
+                        <div class="bg-slate-50 p-3 rounded-2xl inline-block mb-6 border border-slate-100">
+                            <p class="text-[10px] text-slate-400 font-bold uppercase mb-1">เวลาที่เหลือ</p>
+                            <p id="custLoanTimerDisplay" class="text-xl font-mono font-bold text-indigo-600">กำลังคำนวณ...</p>
+                        </div>
+                        <button onclick="repayLoan()" class="w-full bg-emerald-500 text-white font-bold p-4 rounded-2xl shadow-lg shadow-emerald-200 active:scale-95 transition-all hover:bg-emerald-600 text-lg">ชำระหนี้ ฿${formatMoney(d.loan.amount)}</button>
+                    `;
+                } else {
+                    loanDisp.innerHTML = `
+                        <div class="w-20 h-20 bg-emerald-50 text-emerald-500 rounded-full flex items-center justify-center text-4xl mx-auto mb-4">✨</div>
+                        <h3 class="text-lg font-bold text-slate-800">เครดิตดีเยี่ยม!</h3>
+                        <p class="text-sm text-slate-500 mt-1">คุณไม่มีหนี้สินค้างชำระ</p>
+                    `;
+                }
             });
 
             const qLog = query(collection(db, `rooms/${currentRoomId}/history`), orderBy("timestamp", "desc"));
             unsubLog = onSnapshot(qLog, (snap) => {
                 document.getElementById('custHistoryFeed').innerHTML = snap.docs.map(doc => {
                     const l = doc.data(), t = l.timestamp ? new Date(l.timestamp.toDate()).toLocaleTimeString('th-TH',{hour:'2-digit',minute:'2-digit'}) : '';
-                    return `<li class="py-3 flex gap-2"><span class="text-lg">⏺</span><div class="flex-grow"><p class="text-xs text-slate-700 font-medium">${l.msg}</p><p class="text-[9px] text-slate-400">${t}</p></div></li>`;
+                    return `<li class="py-3 flex gap-3 items-start group">
+                                <div class="w-2 h-2 rounded-full bg-indigo-300 mt-1.5 group-hover:bg-indigo-500 transition"></div>
+                                <div class="flex-grow">
+                                    <p class="text-sm text-slate-700 font-medium">${l.msg}</p>
+                                    <p class="text-[10px] text-slate-400 mt-0.5">${t}</p>
+                                </div>
+                            </li>`;
                 }).join('');
             });
         }
@@ -534,47 +712,78 @@
 
     async function addLog(roomId, msg) { await addDoc(collection(db, `rooms/${roomId}/history`), { msg, timestamp: serverTimestamp() }); }
 
-    // ออกห้อง
-    document.querySelectorAll('.btnLeaveRoom').forEach(b => b.onclick = () => {
-        Swal.fire({ title: 'ปิดแอป?', icon: 'question', showCancelButton: true, confirmButtonColor:'#6366f1' }).then(r => {
-            if(r.isConfirmed) {
-                localStorage.clear(); currentRoomId = null;
-                if(unsubRoom) unsubRoom(); if(unsubPlayers) unsubPlayers(); if(unsubMe) unsubMe(); if(unsubLog) unsubLog();
-                uiShow('lobby-screen');
-            }
-        });
-    });
+    // ================= LOAN ACTIONS =================
+    document.getElementById('btnBankGrantLoan').onclick = async () => {
+        const uid = document.getElementById('bankLoanUid').value;
+        const amt = parseInt(document.getElementById('bankLoanAmt').value);
+        const mins = parseInt(document.getElementById('bankLoanMins').value);
 
-    // ================= PROPERTIES MANAGEMENT =================
+        if(!uid || !amt || amt <= 0 || !mins || mins <= 0) return Swal.fire('','ระบุยอดเงินและเวลา(นาที)ให้ถูกต้อง','warning');
+
+        const target = getPlayerByShortId(roomPlayers.find(p=>p.uid===uid).shortId);
+        if(target.loan && target.loan.amount > 0) return Swal.fire('','ผู้เล่นนี้ยังมีหนี้ค้างชำระอยู่','error');
+
+        const dueDate = new Date(); dueDate.setMinutes(dueDate.getMinutes() + mins);
+
+        try {
+            Swal.showLoading();
+            await updateDoc(doc(db, `rooms/${currentRoomId}/players`, uid), {
+                balance: increment(amt),
+                loan: { amount: amt, dueDate: dueDate }
+            });
+            await addLog(currentRoomId, `🏦 แบงก์ปล่อยกู้ให้ ${target.displayName} ฿${formatMoney(amt)} (คืนใน ${mins} นาที)`);
+            document.getElementById('bankLoanAmt').value = ''; document.getElementById('bankLoanMins').value = '';
+            Swal.fire({icon:'success', title:'ปล่อยกู้สำเร็จ', showConfirmButton:false, timer:1500});
+        } catch(e) { Swal.fire('Error', e.message, 'error'); }
+    };
+
+    window.repayLoan = async () => {
+        const data = currentCustomerData;
+        if(!data || !data.loan || data.loan.amount <= 0) return;
+        const loanAmt = data.loan.amount;
+
+        if(data.balance < loanAmt) return Swal.fire('','ยอดเงินของคุณไม่พอสำหรับคืนหนี้','error');
+
+        const confirm = await Swal.fire({ title: 'ยืนยันชำระหนี้', text: `ยอดหัก: ฿${formatMoney(loanAmt)}`, showCancelButton: true, confirmButtonColor: '#10b981' });
+        if(confirm.isConfirmed) {
+            try {
+                Swal.showLoading();
+                await updateDoc(doc(db, `rooms/${currentRoomId}/players`, currentUser.uid), {
+                    balance: increment(-loanAmt),
+                    loan: null
+                });
+                await addLog(currentRoomId, `💸 ${currentUser.displayName} ชำระหนี้ธนาคาร ฿${formatMoney(loanAmt)} เรียบร้อย`);
+                Swal.fire({icon:'success', title:'ชำระหนี้สำเร็จ', showConfirmButton:false, timer:1500});
+            } catch(e) { Swal.fire('Error', e.message, 'error'); }
+        }
+    };
+
+    // ================= PROPERTIES =================
     document.getElementById('btnBuyProp').onclick = async () => {
         const inp = document.getElementById('propNumberInput');
         const pNum = inp.value.trim();
-        if(!pNum || isNaN(pNum)) return Swal.fire('','กรุณาใส่เฉพาะ "ตัวเลข" โฉนดเท่านั้น','warning');
-        
-        // เช็คซ้ำ
+        if(!pNum || isNaN(pNum)) return Swal.fire('','กรุณาใส่เฉพาะตัวเลขโฉนดเท่านั้น','warning');
         if(allOwnedProperties.has(pNum)) return Swal.fire('ไม่ได้!','โฉนดหมายเลขนี้มีคนซื้อไปแล้ว','error');
 
         try {
             await updateDoc(doc(db, `rooms/${currentRoomId}/players`, currentUser.uid), { properties: arrayUnion(pNum) });
-            await addLog(currentRoomId, `📄 ${currentUser.displayName} ได้รับโฉนดหมายเลข #${pNum}`);
+            await addLog(currentRoomId, `📄 ${currentUser.displayName} ได้รับโฉนด #${pNum}`);
             inp.value = '';
             Swal.fire({icon:'success', title:'บันทึกสำเร็จ', showConfirmButton:false, timer:1000});
         } catch(e) { Swal.fire('Error',e.message,'error'); }
     };
 
-    // ฟังก์ชันลบโฉนด (เปิดให้ HTML เรียกใช้ได้)
     window.removeProperty = async (pNum) => {
-        const confirm = await Swal.fire({ title: `ลบโฉนด #${pNum}?`, text:'ต้องการขายคืน/ลบโฉนดนี้ใช่หรือไม่', showCancelButton: true, confirmButtonColor: '#ef4444' });
+        const confirm = await Swal.fire({ title: `นำโฉนด #${pNum} ออก?`, text:'ต้องการขายคืน/ลบโฉนดใช่หรือไม่', showCancelButton: true, confirmButtonColor: '#ef4444' });
         if(confirm.isConfirmed) {
             await updateDoc(doc(db, `rooms/${currentRoomId}/players`, currentUser.uid), { properties: arrayRemove(pNum) });
             await addLog(currentRoomId, `📄 ${currentUser.displayName} นำโฉนด #${pNum} ออกจากระบบ`);
         }
     };
 
-    // ================= CUSTOMER ACTIONS (TRANSFER & QR) =================
+    // ================= CUSTOMER TRANSFER =================
     async function executeTransfer(targetPlayer, amount) {
-        const myD = await getDoc(doc(db, `rooms/${currentRoomId}/players`, currentUser.uid));
-        if(myD.data().balance < amount) return Swal.fire('','เงินไม่พอ!','error');
+        if(currentCustomerData.balance < amount) return Swal.fire('','เงินไม่พอ!','error');
         try {
             Swal.showLoading();
             await updateDoc(doc(db, `rooms/${currentRoomId}/players`, currentUser.uid), { balance: increment(-amount) });
@@ -582,7 +791,7 @@
             await addLog(currentRoomId, `💸 ${currentUser.displayName} โอนให้ ${targetPlayer.displayName} ฿${formatMoney(amount)}`);
             document.getElementById('t-id').value = ''; document.getElementById('t-amt').value = '';
             Swal.fire({icon:'success', title:'โอนสำเร็จ!', showConfirmButton:false, timer:1500});
-            switchCustTab('home'); // กลับหน้าแรก
+            switchCustTab('home');
         } catch(e) { Swal.fire('Error','ล้มเหลว','error'); }
     }
 
@@ -590,19 +799,26 @@
         const tid = document.getElementById('t-id').value; const amt = parseInt(document.getElementById('t-amt').value);
         if(!tid || isNaN(amt) || amt <= 0) return Swal.fire('','ข้อมูลไม่ถูกต้อง','warning');
         const target = getPlayerByShortId(tid);
-        if(!target) return Swal.fire('','ไม่พบเลขบัญชีในสาขานี้','error');
+        if(!target) return Swal.fire('','ไม่พบเลขบัญชีนี้','error');
         if(target.uid === currentUser.uid) return Swal.fire('','โอนให้ตัวเองไม่ได้','error');
         
-        const conf = await Swal.fire({ title: 'ยืนยันโอน', html: `<p>โอนให้: <b>${target.displayName}</b></p><p class="text-2xl font-bold mt-2">฿${formatMoney(amt)}</p>`, showCancelButton:true, confirmButtonColor:'#6366f1' });
+        const conf = await Swal.fire({ title: 'ยืนยันโอนเงิน', html: `<p class="mb-2 text-sm">ผู้รับ: <b>${target.displayName}</b></p><div class="bg-indigo-50 p-4 rounded-xl inline-block"><p class="text-3xl font-black text-indigo-600">฿${formatMoney(amt)}</p></div>`, showCancelButton:true, confirmButtonColor:'#4f46e5' });
         if(conf.isConfirmed) executeTransfer(target, amt);
     };
 
-    // QR Features
+    // ================= QR CODE & SCANNER =================
+    window.closeQRModal = () => {
+        document.getElementById('modal-myqr').classList.add('opacity-0');
+        setTimeout(() => document.getElementById('modal-myqr').classList.add('hidden'), 300);
+    };
+    
     document.getElementById('btnShowMyQR').onclick = () => {
         const qc = document.getElementById('qrcode-container'); qc.innerHTML = '';
-        new QRCode(qc, { text: JSON.stringify({ act: 'pay', id: myShortId }), width: 180, height: 180, colorDark: "#4f46e5", colorLight: "#ffffff" });
+        new QRCode(qc, { text: JSON.stringify({ act: 'pay', id: myShortId }), width: 200, height: 200, colorDark: "#4f46e5", colorLight: "#ffffff" });
         document.getElementById('qrAccNoShow').innerText = myShortId;
-        document.getElementById('modal-myqr').classList.remove('hidden');
+        const modal = document.getElementById('modal-myqr');
+        modal.classList.remove('hidden');
+        setTimeout(() => modal.classList.remove('opacity-0'), 10);
     };
 
     document.getElementById('btnOpenScanner').onclick = () => {
@@ -617,11 +833,11 @@
                     if(!target) return Swal.fire('','QR นี้ไม่ได้อยู่ในห้องนี้','error');
                     if(target.uid === currentUser.uid) return Swal.fire('','สแกน QR ตัวเองไม่ได้','error');
                     document.getElementById('t-id').value = target.shortId;
-                    Swal.fire({ title:`โอนให้ ${target.displayName}`, input:'number', inputPlaceholder:'ใส่ยอดเงิน', showCancelButton:true, confirmButtonColor:'#6366f1' }).then(r=>{
+                    Swal.fire({ title:`โอนให้ ${target.displayName}`, input:'number', inputPlaceholder:'ใส่ยอดเงินที่ต้องการโอน', showCancelButton:true, confirmButtonColor:'#4f46e5' }).then(r=>{
                         if(r.isConfirmed && r.value>0) executeTransfer(target, parseInt(r.value));
                     });
                 } else throw new Error();
-            } catch(e) { Swal.fire('','QR ไม่รองรับ','error'); }
+            } catch(e) { Swal.fire('','รูปแบบ QR ไม่รองรับ','error'); }
         }, ()=>{});
     };
     document.getElementById('btnCloseScanner').onclick = () => {
@@ -629,25 +845,25 @@
         document.getElementById('modal-scanner').classList.add('hidden');
     };
 
-    // ================= BANK ADMIN ACTIONS =================
+    // ================= BANK ACTIONS =================
     const bankAction = async (isGive) => {
         const opts = roomPlayers.map(p=>`<option value="${p.uid}">${p.displayName} (${p.shortId})</option>`).join('');
         const {value: v} = await Swal.fire({
-            title: isGive?'แจกเงิน':'หักเงิน',
-            html: `<select id="b-uid" class="w-full p-4 bg-slate-50 border border-slate-200 rounded-xl mb-3 outline-none font-bold">${opts}</select><input id="b-amt" type="number" placeholder="ยอดเงิน" class="w-full p-4 bg-slate-50 border border-slate-200 rounded-xl outline-none font-bold text-center">`,
+            title: isGive?'แจกเงิน / โบนัส':'หักเงิน / ค่าปรับ',
+            html: `<select id="b-uid" class="w-full p-3 bg-slate-50 border border-slate-200 rounded-xl mb-3 outline-none font-bold">${opts}</select><input id="b-amt" type="number" placeholder="ยอดเงิน" class="w-full p-3 bg-slate-50 border border-slate-200 rounded-xl outline-none font-black text-lg text-center">`,
             showCancelButton: true, confirmButtonColor: isGive?'#10b981':'#ef4444',
             preConfirm: () => ({ u: document.getElementById('b-uid').value, n: document.getElementById('b-uid').options[document.getElementById('b-uid').selectedIndex].text.split(' ')[0], a: parseInt(document.getElementById('b-amt').value) })
         });
         if(v && v.a > 0) {
             await updateDoc(doc(db, `rooms/${currentRoomId}/players`, v.u), { balance: increment(isGive?v.a:-v.a) });
-            await addLog(currentRoomId, `${isGive?'🏦 แจกเงิน':'🏛️ หักเงิน'} ${v.n} (฿${formatMoney(v.a)})`);
+            await addLog(currentRoomId, `${isGive?'🏦 แจกโบนัส':'🏛️ ปรับเงิน'} ${v.n} (฿${formatMoney(v.a)})`);
             Swal.fire({icon:'success', title:'สำเร็จ', timer:1000, showConfirmButton:false});
         }
     };
     document.getElementById('btnBankGive').onclick = () => bankAction(true);
     document.getElementById('btnBankTake').onclick = () => bankAction(false);
 
-    // ================= EVENT (TIMER) =================
+    // ================= EVENTS =================
     function handleEventUpdate(ev) {
         if(eventTimerInterval) clearInterval(eventTimerInterval);
         const cBan = document.getElementById('custEventBanner'), bSetup = document.getElementById('bankEventSetup'), bAct = document.getElementById('bankEventActive');
@@ -675,12 +891,12 @@
         if(!mins || mins<=0) return Swal.fire('','ใส่เวลา(นาที)ให้ถูกต้อง','warning');
         const endTime = new Date(); endTime.setMinutes(endTime.getMinutes() + mins);
         await updateDoc(doc(db, "rooms", currentRoomId), { event: { title, endTime } });
-        await addLog(currentRoomId, `⏰ แอดมินเริ่มกิจกรรม: "${title}"`);
+        await addLog(currentRoomId, `⏰ เริ่มเวลา: "${title}"`);
         document.getElementById('evTitle').value = ''; document.getElementById('evMins').value = '';
     };
     document.getElementById('btnBankCancelEvent').onclick = async () => {
         await updateDoc(doc(db, "rooms", currentRoomId), { event: null });
-        await addLog(currentRoomId, `❌ ยกเลิกกิจกรรมแล้ว`);
+        await addLog(currentRoomId, `❌ ยกเลิกเวลาแล้ว`);
     };
 
 </script>
